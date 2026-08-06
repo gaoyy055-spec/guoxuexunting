@@ -2538,7 +2538,7 @@ function resumeFromSegment(segments, startIdx) {
 }
 
 // ===== Q&A 互动 =====
-let qaContext = { poemTitle: '', level: '', goal: '', turns: 0, mode: 'normal' };
+let qaContext = { poemTitle: '', level: '', goal: '', turns: 0, mode: 'normal', poetGreeted: false };
 // mode: 'normal' = 音箱助手语气；'poet' = 诗人人设语气（单轮，回答后自动恢复）
 
 // ===== 诗人人设数据 =====
@@ -2661,7 +2661,13 @@ function speakAsPoet(text, author, onDone) {
 
 // 判断是否是触发"跟诗人聊"的输入
 function isPoetTrigger(q) {
-  return /跟诗人|和诗人|问诗人|诗人说|诗人聊|跟作者|问作者|作者聊|你是诗人|穿越|诗人你好|你好诗人/.test(q);
+  // 明确触发诗人聊天
+  if (/跟诗人|和诗人|问诗人|诗人说|诗人聊|跟作者|问作者|作者聊|你是诗人|穿越|诗人你好|你好诗人/.test(q)) return true;
+
+  // 问诗人相关的问题：诗人当时心情/感受/经历/生活/为什么写/在哪里/那时候
+  if (/当时|那时候|写这首诗|为什么写|心情|感受|经历|他在哪|他住|他的生活|他喜欢|他有没有|他怎么|他后来|诗人.*吗|.*诗人.*为什么|你.*那天|你.*当时|你.*为什么|你.*有没有|你.*喜不喜欢|你.*怎么/.test(q)) return true;
+
+  return false;
 }
 
 // 生成诗人风格回答
@@ -2685,6 +2691,16 @@ function getPoetAnswer(poemTitle, question, level) {
   if (res.moon && /月|故乡|想家/.test(q)) return res.moon;
   if (res.fast && /快|开心|高兴|船/.test(q)) return res.fast;
   if (res.cold && /寒|冷|月宫/.test(q)) return res.cold;
+
+  // 情绪/心情类
+  if (/心情|高兴|难过|伤心|开心|感受|感觉|为什么写|当时/.test(q)) {
+    return typeof res.default === 'function' ? res.default(q, lv) : (res.default || lv.life);
+  }
+  // 经历/生活类
+  if (/经历|生活|那时|那年|你在哪|你住|你后来/.test(q)) {
+    const extra = lv.back ? '「' + lv.back + '」——此句便是吾当时心境。' : '';
+    return (typeof res.default === 'function' ? res.default(q, lv) : res.default) + (extra ? ' ' + extra : '');
+  }
 
   // 通用诗人回答
   return typeof res.default === 'function' ? res.default(q, lv) : res.default;
@@ -2757,7 +2773,7 @@ function speakText(text, rate, onDone) {
 }
 
 function showQAPanel(poemTitle, level, goal) {
-  qaContext = { poemTitle, level, goal: goal || '', turns: 0, mode: 'normal' };
+  qaContext = { poemTitle, level, goal: goal || '', turns: 0, mode: 'normal', poetGreeted: false };
   const data = POEM_DATA[poemTitle];
   const panel = document.getElementById('qaPanel');
   const prompt = document.getElementById('qaPrompt');
@@ -2815,18 +2831,21 @@ function processUserInput(q) {
     qaContext.mode = 'poet';
     const persona = POET_PERSONA[author];
 
-    // 第一句：以诗人身份打招呼
-    const greeting = persona ? persona.greeting : `吾乃${author}，小友有礼了。`;
+    // 是否是第一次触发诗人（没有greeting过）
+    const isFirstPoet = !qaContext.poetGreeted;
+    qaContext.poetGreeted = true;
+
+    const greeting = isFirstPoet && persona ? persona.greeting + ' ' : '';
     const poetAnswer = getPoetAnswer(qaContext.poemTitle, q, qaContext.level);
     const fullReply = greeting + poetAnswer;
 
-    // 加一个诗人标签气泡
     const poetLabel = author ? `【${author}】` : '【诗人】';
     addBubble('ai', poetLabel + ' ' + fullReply);
 
     speakAsPoet(fullReply, author, () => {
-      // 诗人回答完毕，提示恢复
-      const backMsg = '（诗人走远了……有什么还想问音箱吗？）';
+      const backMsg = level === 'L1'
+        ? '（诗人说完啦～还有什么想问的吗？）'
+        : '（诗人作答已毕，还有其他问题吗？）';
       qaContext.mode = 'normal';
       addBubble('ai', backMsg);
       speakText(backMsg, 0.88, () => {
