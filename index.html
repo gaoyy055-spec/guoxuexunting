@@ -1,0 +1,3007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国学熏听电台 · Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #EDE8DF;
+    --brown-dark: #2C1810;
+    --brown-mid: #8B7355;
+    --brown-light: #F0EAE0;
+    --red: #C85C38;
+    --gold: #E8B84B;
+    --green: #2D5A4A;
+    --cream: #FDF8F2;
+    --phone-w: 360px;
+    --phone-h: 720px;
+  }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: linear-gradient(135deg, #EDE8DF 0%, #DDD5C8 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 28px 20px 20px;
+  }
+  header h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 26px;
+    color: var(--brown-dark);
+    letter-spacing: 4px;
+  }
+  header p {
+    font-size: 13px;
+    color: var(--brown-mid);
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+
+  /* MAIN LAYOUT */
+  .demo-layout {
+    display: flex;
+    flex: 1;
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 20px 40px;
+    align-items: flex-start;
+  }
+
+  /* LEFT: SPEAKER */
+  .speaker-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    min-height: 600px;
+    position: sticky;
+    top: 20px;
+  }
+
+  .speaker-label {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    color: var(--brown-mid);
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+  }
+
+  /* Speaker CSS */
+  .speaker-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 240px;
+    height: 300px;
+  }
+
+  .ripple-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(200, 92, 56, 0.4);
+    opacity: 0;
+    transform: scale(0.5);
+    animation: none;
+  }
+
+  .speaker-body {
+    position: relative;
+    z-index: 10;
+    width: 160px;
+    height: 200px;
+    border-radius: 50px 50px 44px 44px;
+    background: linear-gradient(170deg, #2a2a2a 0%, #1a1a1a 60%, #111 100%);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -2px 4px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* Speaker top cap */
+  .speaker-top {
+    width: 140px;
+    height: 22px;
+    background: linear-gradient(180deg, #3a3a3a 0%, #222 100%);
+    border-radius: 40px 40px 0 0;
+    margin-top: -2px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .speaker-top-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #444;
+  }
+  .speaker-top-dot.active {
+    background: var(--gold);
+    box-shadow: 0 0 6px var(--gold);
+  }
+
+  /* Fabric texture */
+  .speaker-fabric {
+    flex: 1;
+    width: 100%;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.015) 3px,
+        rgba(255,255,255,0.015) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.015) 3px,
+        rgba(255,255,255,0.015) 4px
+      ),
+      linear-gradient(170deg, #252525 0%, #181818 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Screen on speaker */
+  .speaker-screen {
+    width: 64px;
+    height: 90px;
+    border-radius: 10px;
+    background: #000;
+    border: 1.5px solid #333;
+    box-shadow: 0 0 12px rgba(0,0,0,0.8), inset 0 0 2px #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .speaker-screen-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #0a1628 0%, #0d1f0d 100%);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .speaker-screen-bg.active { opacity: 1; }
+
+  .speaker-time {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 2px;
+    position: relative;
+    z-index: 2;
+    line-height: 1;
+  }
+  .speaker-time .hour { color: #7ecf6e; }
+
+  .speaker-status {
+    font-size: 9px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 2;
+    transition: color 0.3s;
+  }
+  .speaker-status.playing { color: var(--gold); }
+
+  /* Audio wave bars */
+  .wave-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 16px;
+    margin-top: 6px;
+    position: relative;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .wave-bars.visible { opacity: 1; }
+  .wave-bar {
+    width: 3px;
+    border-radius: 2px;
+    background: var(--gold);
+    animation: none;
+  }
+  @keyframes waveAnim {
+    0%, 100% { height: 3px; }
+    50% { height: 14px; }
+  }
+
+  .speaker-bottom {
+    width: 140px;
+    height: 12px;
+    background: linear-gradient(0deg, #222 0%, #2a2a2a 100%);
+    border-radius: 0 0 40px 40px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  @keyframes rippleOut {
+    0% { transform: scale(0.6); opacity: 0.7; }
+    100% { transform: scale(2.8); opacity: 0; }
+  }
+
+  .speaker-playing .ripple:nth-child(1) { animation: rippleOut 2s ease-out 0s infinite; width: 160px; height: 200px; }
+  .speaker-playing .ripple:nth-child(2) { animation: rippleOut 2s ease-out 0.5s infinite; width: 160px; height: 200px; }
+  .speaker-playing .ripple:nth-child(3) { animation: rippleOut 2s ease-out 1s infinite; width: 160px; height: 200px; }
+  .speaker-playing .ripple:nth-child(4) { animation: rippleOut 2s ease-out 1.5s infinite; width: 160px; height: 200px; }
+
+  .speaker-playing .wave-bar:nth-child(1) { animation: waveAnim 0.8s ease-in-out 0.0s infinite; }
+  .speaker-playing .wave-bar:nth-child(2) { animation: waveAnim 0.8s ease-in-out 0.1s infinite; }
+  .speaker-playing .wave-bar:nth-child(3) { animation: waveAnim 0.8s ease-in-out 0.2s infinite; }
+  .speaker-playing .wave-bar:nth-child(4) { animation: waveAnim 0.8s ease-in-out 0.3s infinite; }
+  .speaker-playing .wave-bar:nth-child(5) { animation: waveAnim 0.8s ease-in-out 0.15s infinite; }
+
+  .now-playing-info {
+    margin-top: 28px;
+    text-align: center;
+    min-height: 60px;
+  }
+  .now-playing-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    color: var(--brown-dark);
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: all 0.4s;
+  }
+  .now-playing-title.visible { opacity: 1; transform: translateY(0); }
+  .now-playing-sub {
+    font-size: 12px;
+    color: var(--brown-mid);
+    margin-top: 5px;
+    opacity: 0;
+    transition: opacity 0.4s 0.1s;
+  }
+  .now-playing-sub.visible { opacity: 1; }
+  .now-playing-poem {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    color: var(--red);
+    margin-top: 10px;
+    line-height: 1.8;
+    opacity: 0;
+    transition: opacity 0.4s 0.2s;
+    min-height: 50px;
+  }
+  .now-playing-poem.visible { opacity: 1; }
+
+  .stop-btn {
+    margin-top: 14px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1.5px solid var(--red);
+    background: transparent;
+    color: var(--red);
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s, background 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .stop-btn.visible { opacity: 1; }
+  .stop-btn:hover { background: var(--red); color: #fff; }
+
+  .script-btn {
+    margin-top: 8px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1.5px solid var(--brown-mid);
+    background: transparent;
+    color: var(--brown-mid);
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s, background 0.2s, color 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .script-btn.visible { opacity: 1; }
+  .script-btn:hover { background: var(--brown-mid); color: #fff; }
+
+  /* Interactive Q&A panel */
+  .qa-panel {
+    margin-top: 12px;
+    background: var(--cream);
+    border-radius: 16px;
+    border: 1.5px solid #E8DDD0;
+    padding: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+    width: 240px;
+  }
+  .qa-panel.visible { opacity: 1; pointer-events: all; }
+  .qa-prompt {
+    font-size: 12px;
+    color: var(--brown-dark);
+    font-weight: 500;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .qa-input-row {
+    display: flex;
+    gap: 6px;
+  }
+  .qa-input {
+    flex: 1;
+    border: 1.5px solid #D9D0C4;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--brown-dark);
+    background: #fff;
+    outline: none;
+  }
+  .qa-input:focus { border-color: var(--red); }
+  .qa-send-btn {
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .qa-mic-btn {
+    padding: 6px 9px;
+    border-radius: 10px;
+    background: #F0EAE0;
+    border: 1.5px solid #D9D0C4;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+  }
+  .qa-mic-btn.listening {
+    background: #fff0eb;
+    border-color: var(--red);
+    animation: micPulse 1s ease-in-out infinite;
+  }
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,92,56,0.4); }
+    50% { box-shadow: 0 0 0 5px rgba(200,92,56,0); }
+  }
+  .qa-mic-status {
+    font-size: 10px;
+    color: var(--red);
+    min-height: 14px;
+    margin-top: 4px;
+    text-align: center;
+  }
+  .qa-history {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #D9D0C4 transparent;
+  }
+  .qa-bubble {
+    padding: 7px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .qa-bubble.user {
+    background: #fff0eb;
+    color: var(--brown-dark);
+    align-self: flex-end;
+    max-width: 90%;
+    border-bottom-right-radius: 3px;
+  }
+  .qa-bubble.ai {
+    background: #fff;
+    color: #5a4a3a;
+    align-self: flex-start;
+    max-width: 95%;
+    border: 1.5px solid #E8DDD0;
+    border-bottom-left-radius: 3px;
+  }
+  .qa-answer {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #5a4a3a;
+    line-height: 1.7;
+    min-height: 0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0;
+    transition: padding 0.2s, min-height 0.2s;
+  }
+  .qa-answer.has-content { padding: 8px 10px; }
+  .qa-suggest-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+  .qa-suggest-chip {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: #F0EAE0;
+    border: none;
+    color: var(--brown-mid);
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .qa-suggest-chip:hover { background: #E8DDD0; }
+  .script-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .script-overlay.visible { opacity: 1; pointer-events: all; }
+  .script-panel {
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 24px 28px 28px;
+    width: 340px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    scrollbar-width: thin;
+    scrollbar-color: #D9D0C4 transparent;
+  }
+  .script-overlay.visible .script-panel { transform: translateY(0) scale(1); }
+  .script-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .script-panel-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brown-dark);
+  }
+  .script-close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--brown-mid);
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 4px;
+  }
+  .script-poem-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--brown-dark);
+    margin-bottom: 4px;
+  }
+  .script-poem-author {
+    font-size: 12px;
+    color: var(--brown-mid);
+    margin-bottom: 16px;
+  }
+  .script-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--brown-mid);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #E8DDD0;
+  }
+  .script-intro-text {
+    font-size: 13px;
+    color: var(--brown-mid);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .script-poem-text {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    color: var(--brown-dark);
+    line-height: 2;
+    letter-spacing: 1px;
+  }
+  .script-explain-text {
+    font-size: 13px;
+    color: #5a4a3a;
+    line-height: 1.8;
+  }
+
+  /* Script chain steps */
+  .script-chain-step {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .script-step-badge {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .script-step-badge.green { background: var(--green); }
+  .script-step-badge.gold { background: var(--gold); color: var(--brown-dark); }
+  .script-step-content { flex: 1; }
+  .script-step-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brown-dark);
+    margin-bottom: 3px;
+  }
+  .script-step-body {
+    font-size: 12px;
+    color: #5a4a3a;
+    line-height: 1.7;
+  }
+  .script-step-body em {
+    font-style: normal;
+    color: var(--red);
+    font-family: 'Noto Serif SC', serif;
+  }
+
+  /* Age badge */
+  .age-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .age-badge.low { background: #FFF3E0; color: #E65100; }
+  .age-badge.mid { background: #E8F5E9; color: #2D5A4A; }
+  .age-badge.high { background: #EDE7F6; color: #4527A0; }
+
+  /* Interaction cards */
+  .interact-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .interact-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 13px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1.5px solid #E8DDD0;
+  }
+  .interact-card-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .interact-card-title { font-size: 13px; font-weight: 600; color: var(--brown-dark); }
+  .interact-card-desc { font-size: 11px; color: var(--brown-mid); margin-top: 2px; line-height: 1.5; }
+
+  /* DIVIDER */
+  .divider {
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(139,115,85,0.25) 20%, rgba(139,115,85,0.25) 80%, transparent);
+    align-self: stretch;
+    margin: 20px 0;
+  }
+
+  /* RIGHT: PHONE */
+  .phone-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 20px 30px;
+  }
+
+  .phone-label {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    color: var(--brown-mid);
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+  }
+
+  /* Phone frame */
+  .phone-frame {
+    position: relative;
+    width: var(--phone-w);
+    height: var(--phone-h);
+    border-radius: 40px;
+    background: #1a1a1a;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35), inset 0 0 0 2px #333;
+    overflow: hidden;
+    border: 8px solid #1a1a1a;
+    flex-shrink: 0;
+  }
+
+  .phone-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 26px;
+    background: #1a1a1a;
+    border-radius: 0 0 18px 18px;
+    z-index: 50;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--cream);
+    overflow: hidden;
+    position: relative;
+    border-radius: 32px;
+  }
+
+  /* ---- APP SCREENS ---- */
+  .app-screen {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding-top: 26px;
+    background: var(--cream);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s;
+    scrollbar-width: none;
+  }
+  .app-screen::-webkit-scrollbar { display: none; }
+  .app-screen.hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+  .app-screen.slide-left { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+
+  /* Top bar */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 6px;
+  }
+  .top-bar-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brown-dark);
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--brown-mid);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 4px;
+  }
+  .menu-btn span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--brown-mid);
+  }
+
+  /* Banner */
+  .banner {
+    margin: 0 14px 12px;
+    border-radius: 16px;
+    overflow: hidden;
+    height: 130px;
+    position: relative;
+    cursor: pointer;
+  }
+  .banner img { width: 100%; height: 100%; object-fit: cover; }
+  .banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(44,24,16,0.72) 0%, rgba(44,24,16,0.15) 100%);
+  }
+  .banner-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 12px 14px;
+  }
+  .banner-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: var(--gold);
+    color: var(--brown-dark);
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .banner-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .banner-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.75);
+    margin-top: 2px;
+  }
+
+  /* Filters */
+  .filter-area { padding: 0 14px 6px; }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-label { font-size: 11px; color: var(--brown-mid); min-width: 24px; flex-shrink: 0; }
+  .filter-chip {
+    white-space: nowrap;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    border: none;
+    cursor: pointer;
+    background: var(--brown-light);
+    color: var(--brown-mid);
+    transition: all 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .filter-chip.active { background: var(--red); color: #fff; font-weight: 500; }
+
+  /* Section title */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 14px 8px;
+  }
+  .section-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--brown-dark);
+  }
+  .see-all { font-size: 11px; color: var(--red); }
+
+  /* Album grid */
+  .album-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 14px 20px;
+  }
+  .album-card {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    cursor: pointer;
+    border: none;
+    text-align: left;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .album-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+  .album-card-img {
+    position: relative;
+    height: 90px;
+  }
+  .album-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .album-count {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+  }
+  .album-card-info { padding: 8px 10px 10px; }
+  .album-card-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brown-dark);
+    line-height: 1.3;
+  }
+  .album-card-grade { font-size: 10px; color: var(--brown-mid); margin-top: 2px; }
+
+  /* ---- ALBUM SCREEN ---- */
+  .album-hero {
+    margin: 0 14px 14px;
+    border-radius: 16px;
+    padding: 14px;
+    background: var(--green);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .album-hero img {
+    width: 76px;
+    height: 76px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .album-hero-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.4;
+  }
+  .album-hero-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 5px; }
+  .album-hero-progress { font-size: 11px; color: var(--gold); margin-top: 3px; }
+
+  .loop-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 12px;
+    background: var(--brown-light);
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--brown-dark);
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  .poem-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px 8px;
+  }
+  .poem-list-header span { font-size: 13px; font-weight: 600; font-family: 'Noto Serif SC', serif; color: var(--brown-dark); }
+  .poem-list-header small { font-size: 11px; color: var(--brown-mid); }
+
+  .poem-list { padding: 0 14px; display: flex; flex-direction: column; gap: 7px; }
+  .poem-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+  }
+  .poem-item:hover { border-color: rgba(200,92,56,0.3); }
+  .poem-item.selected { background: #fff0eb; border-color: var(--red); }
+  .poem-item.no-script {
+    background: #f7f5f2;
+    box-shadow: none;
+    cursor: default;
+    opacity: 0.55;
+  }
+  .poem-item.no-script:hover { border-color: transparent; }
+  .poem-item.no-script .poem-name { color: #aaa; }
+  .poem-item.no-script .poem-author { color: #bbb; }
+  .poem-item.no-script .poem-num { background: #ece9e4; color: #bbb; }
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+  }
+  .poem-item:hover { border-color: rgba(200,92,56,0.3); }
+  .poem-item.selected { background: #fff0eb; border-color: var(--red); }
+  .poem-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brown-light);
+    color: var(--brown-mid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .poem-num.learned { background: var(--green); color: #fff; }
+  .poem-info { flex: 1; }
+  .poem-name { font-family: 'Noto Serif SC', serif; font-size: 13px; font-weight: 500; color: var(--brown-dark); }
+  .poem-author { font-size: 10px; color: var(--brown-mid); margin-top: 1px; }
+  .poem-dur { font-size: 10px; color: #B5A898; }
+
+  .push-btn {
+    margin: 14px;
+    width: calc(100% - 28px);
+    padding: 13px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #C85C38, #D4763B);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'Noto Sans SC', sans-serif;
+    box-shadow: 0 4px 16px rgba(200,92,56,0.4);
+    transition: opacity 0.2s;
+  }
+  .push-btn:hover { opacity: 0.9; }
+
+  /* Modal */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .modal-overlay.visible { opacity: 1; pointer-events: all; }
+  .modal-sheet {
+    width: 100%;
+    background: var(--cream);
+    border-radius: 20px 20px 0 0;
+    padding: 16px 16px 24px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .modal-overlay.visible .modal-sheet { transform: translateY(0); }
+  .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: #D9D0C4; margin: 0 auto 14px; }
+  .modal-title { font-family: 'Noto Serif SC', serif; font-size: 16px; font-weight: 600; color: var(--brown-dark); margin-bottom: 4px; }
+  .modal-sub { font-size: 11px; color: var(--brown-mid); margin-bottom: 14px; }
+  .goal-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 14px; }
+  .goal-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1.5px solid #E8DDD0;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+  }
+  .goal-item:hover, .goal-item.selected { background: #fff0eb; border-color: var(--red); }
+  .goal-icon { font-size: 22px; }
+  .goal-name { font-size: 13px; font-weight: 600; color: var(--brown-dark); }
+  .goal-desc { font-size: 11px; color: var(--brown-mid); margin-top: 2px; }
+  .goal-check {
+    margin-left: auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .goal-item.selected .goal-check { opacity: 1; }
+
+  .modal-confirm-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--red);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    margin-bottom: 6px;
+  }
+  .modal-cancel-btn {
+    width: 100%;
+    padding: 8px;
+    border-radius: 12px;
+    background: none;
+    color: var(--brown-mid);
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  /* ---- SETTINGS SCREEN ---- */
+  .settings-list { padding: 6px 14px; display: flex; flex-direction: column; gap: 9px; }
+  .setting-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    cursor: pointer;
+    border: none;
+    text-align: left;
+    width: 100%;
+    border: 1.5px solid transparent;
+  }
+  .setting-card.accent { background: #fff0eb; border-color: var(--red); }
+  .setting-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #F5EFE6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .setting-card.accent .setting-icon { background: #FFE4DA; }
+  .setting-num {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--gold);
+    color: var(--brown-dark);
+    margin-right: 4px;
+  }
+  .setting-card.accent .setting-num { background: var(--red); color: #fff; }
+  .setting-name { font-size: 13px; font-weight: 500; color: var(--brown-dark); }
+  .setting-card.accent .setting-name { color: var(--red); }
+  .setting-sub { font-size: 11px; color: var(--brown-mid); margin-top: 2px; }
+  .setting-arrow { color: #B5A898; font-size: 14px; margin-left: auto; }
+
+  /* Toggle */
+  .toggle-wrapper { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .toggle-btn {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    border-radius: 13px;
+    background: #D9D0C4;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .toggle-btn.on { background: var(--red); }
+  .toggle-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: left 0.3s;
+  }
+  .toggle-btn.on .toggle-knob { left: 21px; }
+
+  /* ---- REPORT SCREEN ---- */
+  .child-card {
+    margin: 0 14px 12px;
+    padding: 14px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2D5A4A, #3D7A62);
+    box-shadow: 0 4px 16px rgba(45,90,74,0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .child-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  .child-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .child-name { font-family: 'Noto Serif SC', serif; font-size: 14px; font-weight: 600; color: #fff; }
+  .child-grade { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+  .child-count { margin-left: auto; text-align: right; }
+  .child-count-num { font-size: 20px; font-weight: 700; color: var(--gold); }
+  .child-count-label { font-size: 10px; color: rgba(255,255,255,0.6); }
+
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 0 14px 12px; }
+  .stat-card { padding: 10px 8px; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+  .stat-val { font-size: 18px; font-weight: 700; }
+  .stat-label { font-size: 10px; color: var(--brown-dark); font-weight: 500; margin-top: 2px; }
+  .stat-sub { font-size: 9px; color: var(--brown-mid); margin-top: 1px; }
+
+  .chart-card { margin: 0 14px 10px; padding: 12px; border-radius: 14px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .chart-title { font-family: 'Noto Serif SC', serif; font-size: 12px; font-weight: 600; color: var(--brown-dark); margin-bottom: 12px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 60px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .bar-fill { width: 100%; border-radius: 3px 3px 0 0; min-height: 4px; }
+  .bar-day { font-size: 9px; color: var(--brown-mid); }
+  .bar-num { font-size: 8px; color: var(--brown-mid); }
+
+  .prog-list { margin: 0 14px 10px; padding: 12px; border-radius: 14px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .prog-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .prog-label { font-size: 11px; color: var(--brown-mid); min-width: 38px; }
+  .prog-track { flex: 1; height: 6px; border-radius: 3px; background: #F0EAE0; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 3px; transition: width 0.6s 0.3s; }
+  .prog-pct { font-size: 10px; color: var(--brown-mid); min-width: 26px; text-align: right; }
+
+  .recent-list { margin: 0 14px; display: flex; flex-direction: column; gap: 6px; padding-bottom: 20px; }
+  .recent-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 12px; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
+  .recent-char { width: 30px; height: 30px; border-radius: 8px; background: #F5EFE6; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif SC', serif; font-size: 14px; color: var(--brown-mid); flex-shrink: 0; }
+  .recent-title { font-size: 12px; font-weight: 500; color: var(--brown-dark); }
+  .recent-author { font-size: 10px; color: var(--brown-mid); }
+  .recent-date { font-size: 9px; color: #B5A898; margin-left: auto; }
+  .loop-option-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px 16px; border-radius: 14px; background: #F5EFE6;
+    border: 2px solid transparent; cursor: pointer; font-size: 12px;
+    color: var(--brown-mid); font-family: 'Noto Sans SC', sans-serif;
+    transition: all 0.2s;
+  }
+  .loop-option-btn.active { background: #fff0eb; border-color: var(--red); color: var(--red); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>国学熏听电台</h1>
+  <p>设备端 · 家长端 · 产品演示</p>
+</header>
+
+<div class="demo-layout">
+  <!-- ===== LEFT: SPEAKER ===== -->
+  <div class="speaker-side">
+    <div class="speaker-label">设备端 · 小度音箱</div>
+    <div class="speaker-wrapper" id="speakerWrapper">
+      <div class="ripple-container">
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+      </div>
+      <div class="speaker-body">
+        <div class="speaker-top">
+          <div class="speaker-top-dot active" id="dotL"></div>
+          <div class="speaker-top-dot"></div>
+          <div class="speaker-top-dot active" id="dotR"></div>
+        </div>
+        <div class="speaker-fabric">
+          <div class="speaker-screen">
+            <div class="speaker-screen-bg" id="screenBg"></div>
+            <div class="speaker-time"><span class="hour" id="clockH">09</span><br><span id="clockM">45</span></div>
+            <div class="speaker-status" id="speakerStatus">小度小度</div>
+            <div class="wave-bars" id="waveBars">
+              <div class="wave-bar" style="height:3px"></div>
+              <div class="wave-bar" style="height:3px"></div>
+              <div class="wave-bar" style="height:3px"></div>
+              <div class="wave-bar" style="height:3px"></div>
+              <div class="wave-bar" style="height:3px"></div>
+            </div>
+          </div>
+        </div>
+        <div class="speaker-bottom"></div>
+      </div>
+    </div>
+
+    <div class="now-playing-info">
+      <div class="now-playing-title" id="nowTitle"></div>
+      <div class="now-playing-sub" id="nowSub"></div>
+      <div class="now-playing-poem" id="nowPoem"></div>
+      <button class="stop-btn" id="stopBtn" onclick="stopSpeaker()">■ 停止播放</button>
+      <button class="script-btn" id="scriptBtn" onclick="showScriptPanel()">📜 讲解内容</button>
+      <!-- Interactive Q&A panel -->
+      <div class="qa-panel" id="qaPanel">
+        <div class="qa-prompt" id="qaPrompt"></div>
+        <div class="qa-suggest-row" id="qaSuggest"></div>
+        <div class="qa-input-row">
+          <input class="qa-input" id="qaInput" placeholder="说点什么…或按麦克风" onkeydown="if(event.key==='Enter')sendQA()">
+          <button class="qa-mic-btn" id="qaMicBtn" onclick="toggleMic()" title="语音输入">🎙</button>
+          <button class="qa-send-btn" onclick="sendQA()">发送</button>
+        </div>
+        <div class="qa-mic-status" id="qaMicStatus"></div>
+        <div class="qa-history" id="qaHistory"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Panel Overlay (outside phone, fixed overlay) -->
+  <div class="script-overlay" id="scriptOverlay" onclick="hideScriptOnOverlay(event)">
+    <div class="script-panel" id="scriptPanel">
+      <div class="script-panel-header">
+        <div class="script-panel-title">讲解内容</div>
+        <button class="script-close-btn" onclick="hideScriptPanel()">✕</button>
+      </div>
+      <div id="scriptContent"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ===== RIGHT: PHONE ===== -->
+  <div class="phone-side">
+    <div class="phone-label">家长端 · 小度 App</div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- HOME SCREEN -->
+        <div class="app-screen" id="screen-home">
+          <div class="top-bar">
+            <div class="top-bar-title">国学熏听电台</div>
+            <button class="menu-btn" onclick="goTo('settings')">
+              <span></span><span></span><span></span>
+            </button>
+          </div>
+          <div class="banner" onclick="goToAlbum(3)">
+            <img src="https://images.unsplash.com/photo-1572940639050-49166eb37404?w=700&h=312&fit=crop&auto=format" alt="中秋咏月">
+            <div class="banner-overlay"></div>
+            <div class="banner-content">
+              <div class="banner-tag">中秋推荐</div>
+              <div class="banner-title">中秋咏月·古诗专辑</div>
+              <div class="banner-sub">皎皎空中孤月轮，共赏千年中秋月</div>
+            </div>
+          </div>
+          <div class="filter-area">
+            <div class="filter-row">
+              <span class="filter-label">年龄</span>
+              <button class="filter-chip active" onclick="setFilter(this,'age')">全部</button>
+              <button class="filter-chip" onclick="setFilter(this,'age')">4-6岁</button>
+              <button class="filter-chip" onclick="setFilter(this,'age')">7-9岁</button>
+              <button class="filter-chip" onclick="setFilter(this,'age')">10-12岁</button>
+            </div>
+            <div class="filter-row">
+              <span class="filter-label">年级</span>
+              <button class="filter-chip active" onclick="setFilter(this,'grade')">全部</button>
+              <button class="filter-chip" onclick="setFilter(this,'grade')">1年级</button>
+              <button class="filter-chip" onclick="setFilter(this,'grade')">2年级</button>
+              <button class="filter-chip" onclick="setFilter(this,'grade')">3年级</button>
+              <button class="filter-chip" onclick="setFilter(this,'grade')">5年级</button>
+            </div>
+            <div class="filter-row">
+              <span class="filter-label">主题</span>
+              <button class="filter-chip active" onclick="setFilter(this,'theme')">全部</button>
+              <button class="filter-chip" onclick="setFilter(this,'theme')">山水</button>
+              <button class="filter-chip" onclick="setFilter(this,'theme')">思乡</button>
+              <button class="filter-chip" onclick="setFilter(this,'theme')">节气</button>
+              <button class="filter-chip" onclick="setFilter(this,'theme')">励志</button>
+            </div>
+          </div>
+          <div class="section-header">
+            <span class="section-title">古诗专辑</span>
+            <span class="see-all">查看全部 ›</span>
+          </div>
+          <div class="album-grid" id="albumGrid"></div>
+        </div>
+
+        <!-- ALBUM SCREEN -->
+        <div class="app-screen hidden" id="screen-album">
+          <div class="top-bar">
+            <button class="back-btn" onclick="goBack('home')">← 返回</button>
+            <button class="loop-btn" onclick="showLoopModal()">
+              <span id="loopIcon">🔁</span><span id="loopLabel">列表循环</span>
+            </button>
+          </div>
+          <div class="album-hero">
+            <img id="albumHeroImg" src="" alt="">
+            <div>
+              <div class="album-hero-title" id="albumHeroTitle"></div>
+              <div class="album-hero-sub" id="albumHeroSub"></div>
+              <div class="album-hero-progress" id="albumHeroProgress">已学 0/0</div>
+            </div>
+          </div>
+          <div class="poem-list-header">
+            <span>专辑诗词</span><small>点击选择</small>
+          </div>
+          <div class="poem-list" id="poemList"></div>
+          <button class="push-btn" onclick="showGoalModal()">▶ 推送播放</button>
+
+          <!-- Loop Modal (Album) -->
+          <div class="modal-overlay" id="loopModalAlbum">
+            <div class="modal-sheet">
+              <div class="modal-handle"></div>
+              <div class="modal-title">播放设置</div>
+              <div class="modal-sub">选择音箱的播放循环模式</div>
+              <div style="display:flex;justify-content:center;gap:16px;margin-bottom:18px">
+                <button class="loop-option-btn active" id="loopOptA0" onclick="pickLoop(0)">
+                  <div style="font-size:28px">🔁</div>
+                  <div>列表循环</div>
+                </button>
+                <button class="loop-option-btn" id="loopOptA1" onclick="pickLoop(1)">
+                  <div style="font-size:28px">🔂</div>
+                  <div>单曲循环</div>
+                </button>
+                <button class="loop-option-btn" id="loopOptA2" onclick="pickLoop(2)">
+                  <div style="font-size:28px">▶</div>
+                  <div>顺序播放</div>
+                </button>
+              </div>
+              <button class="modal-confirm-btn" onclick="confirmLoop()">确定</button>
+              <button class="modal-cancel-btn" onclick="hideLoopModal()">取消</button>
+            </div>
+          </div>
+
+          <!-- Goal Modal -->
+          <div class="modal-overlay" id="goalModal">
+            <div class="modal-sheet">
+              <div class="modal-handle"></div>
+              <div class="modal-title">选择学习目标</div>
+              <div class="modal-sub">根据目标自动调整播放模式与互动强度</div>
+              <div class="goal-list">
+                <button class="goal-item" onclick="selectGoal(this,'日常熏听')">
+                  <span class="goal-icon">🎵</span>
+                  <div><div class="goal-name">日常熏听</div><div class="goal-desc">每日一诗，中低互动强度，背诵可选</div></div>
+                  <div class="goal-check">✓</div>
+                </button>
+                <button class="goal-item" onclick="selectGoal(this,'课内同步')">
+                  <span class="goal-icon">📖</span>
+                  <div><div class="goal-name">课内同步</div><div class="goal-desc">必背古诗，中等互动，背诵任务开启</div></div>
+                  <div class="goal-check">✓</div>
+                </button>
+                <button class="goal-item" onclick="selectGoal(this,'背诵积累')">
+                  <span class="goal-icon">🏆</span>
+                  <div><div class="goal-name">背诵积累</div><div class="goal-desc">必背古诗，高互动强度，背诵任务开启</div></div>
+                  <div class="goal-check">✓</div>
+                </button>
+              </div>
+              <button class="modal-confirm-btn" onclick="confirmPush()">确定推送</button>
+              <button class="modal-cancel-btn" onclick="hideGoalModal()">取消</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SETTINGS SCREEN -->
+        <div class="app-screen hidden" id="screen-settings">
+          <div class="top-bar">
+            <button class="back-btn" onclick="goBack('home')">← 返回</button>
+            <div class="top-bar-title">设置</div>
+            <div style="width:40px"></div>
+          </div>
+          <div class="settings-list">
+            <button class="setting-card" onclick="showLoopModal()">
+              <div class="setting-icon">🎵</div>
+              <div><div class="setting-name"><span class="setting-num">1</span>播放设置</div><div class="setting-sub" id="loopSettingSubText">当前：列表循环</div></div>
+              <span class="setting-arrow">›</span>
+            </button>
+            <button class="setting-card" onclick="showTimerModal()">
+              <div class="setting-icon">⏰</div>
+              <div><div class="setting-name"><span class="setting-num">2</span>定时播放</div><div class="setting-sub" id="timerSettingSubText">未设置</div></div>
+              <span class="setting-arrow">›</span>
+            </button>
+            <div class="toggle-wrapper">
+              <div class="setting-icon">🔔</div>
+              <div style="flex:1"><div class="setting-name"><span class="setting-num">3</span>自动播放</div><div class="setting-sub">开启后推送点播立即响应，优先级高于定时</div></div>
+              <button class="toggle-btn" id="autoPlayToggle" onclick="toggleAutoPlay(this)">
+                <div class="toggle-knob"></div>
+              </button>
+            </div>
+            <button class="setting-card accent" onclick="goTo('report')">
+              <div class="setting-icon">📊</div>
+              <div><div class="setting-name"><span class="setting-num">4</span>家长报告</div><div class="setting-sub">查看孩子学习数据与进度报告</div></div>
+              <span class="setting-arrow">›</span>
+            </button>
+          </div>
+
+          <!-- Loop Modal (Settings) -->
+          <div class="modal-overlay" id="loopModal">
+            <div class="modal-sheet">
+              <div class="modal-handle"></div>
+              <div class="modal-title">播放设置</div>
+              <div class="modal-sub">选择音箱的播放循环模式</div>
+              <div style="display:flex;justify-content:center;gap:16px;margin-bottom:18px">
+                <button class="loop-option-btn active" id="loopOpt0" onclick="pickLoop(0)">
+                  <div style="font-size:28px">🔁</div>
+                  <div>列表循环</div>
+                </button>
+                <button class="loop-option-btn" id="loopOpt1" onclick="pickLoop(1)">
+                  <div style="font-size:28px">🔂</div>
+                  <div>单曲循环</div>
+                </button>
+                <button class="loop-option-btn" id="loopOpt2" onclick="pickLoop(2)">
+                  <div style="font-size:28px">▶</div>
+                  <div>顺序播放</div>
+                </button>
+              </div>
+              <button class="modal-confirm-btn" onclick="confirmLoop()">确定</button>
+              <button class="modal-cancel-btn" onclick="hideLoopModal()">取消</button>
+            </div>
+          </div>
+
+          <!-- Timer Modal -->
+          <div class="modal-overlay" id="timerModal">
+            <div class="modal-sheet">
+              <div class="modal-handle"></div>
+              <div class="modal-title">定时播放</div>
+              <div class="modal-sub">设置每天自动开始播放的时间</div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 20px">
+                <select id="timerHour" style="font-size:24px;font-family:'Noto Serif SC',serif;color:#2C1810;border:none;background:#F0EAE0;border-radius:10px;padding:8px 12px;outline:none;cursor:pointer">
+                  <option>06</option><option>07</option><option selected>08</option><option>09</option><option>10</option><option>18</option><option>19</option><option>20</option>
+                </select>
+                <span style="font-size:24px;font-weight:700;color:#2C1810">:</span>
+                <select id="timerMin" style="font-size:24px;font-family:'Noto Serif SC',serif;color:#2C1810;border:none;background:#F0EAE0;border-radius:10px;padding:8px 12px;outline:none;cursor:pointer">
+                  <option selected>00</option><option>15</option><option>30</option><option>45</option>
+                </select>
+              </div>
+              <button class="modal-confirm-btn" onclick="confirmTimer()">确定</button>
+              <button class="modal-cancel-btn" onclick="hideTimerModal()">取消定时</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- REPORT SCREEN -->
+        <div class="app-screen hidden" id="screen-report">
+          <div class="top-bar">
+            <button class="back-btn" onclick="goBack('settings')">← 返回</button>
+            <div class="top-bar-title">家长报告</div>
+            <div style="width:40px"></div>
+          </div>
+          <div class="child-card">
+            <div class="child-avatar"><img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=96&h=96&fit=crop&auto=format" alt="孩子"></div>
+            <div><div class="child-name">小明</div><div class="child-grade">三年级 · 目标：课内同步</div></div>
+            <div class="child-count"><div class="child-count-num">23</div><div class="child-count-label">累计首诗</div></div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-card"><div class="stat-val" style="color:#C85C38">43首</div><div class="stat-label">本周熏听</div><div class="stat-sub">较上周+12%</div></div>
+            <div class="stat-card"><div class="stat-val" style="color:#2D5A4A">7天</div><div class="stat-label">连续打卡</div><div class="stat-sub">坚持真棒！</div></div>
+            <div class="stat-card"><div class="stat-val" style="color:#4A90A4">85%</div><div class="stat-label">背诵完成</div><div class="stat-sub">课内同步达标</div></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">本周熏听分布</div>
+            <div class="bar-chart">
+              <div class="bar-col"><div class="bar-num">4</div><div class="bar-fill" style="height:26px;background:linear-gradient(180deg,#E8B84B,#D4A03A)"></div><div class="bar-day">一</div></div>
+              <div class="bar-col"><div class="bar-num">7</div><div class="bar-fill" style="height:44px;background:linear-gradient(180deg,#E8B84B,#D4A03A)"></div><div class="bar-day">二</div></div>
+              <div class="bar-col"><div class="bar-num">3</div><div class="bar-fill" style="height:19px;background:linear-gradient(180deg,#E8B84B,#D4A03A)"></div><div class="bar-day">三</div></div>
+              <div class="bar-col"><div class="bar-num">8</div><div class="bar-fill" style="height:50px;background:linear-gradient(180deg,#E8B84B,#D4A03A)"></div><div class="bar-day">四</div></div>
+              <div class="bar-col"><div class="bar-num">6</div><div class="bar-fill" style="height:38px;background:linear-gradient(180deg,#E8B84B,#D4A03A)"></div><div class="bar-day">五</div></div>
+              <div class="bar-col"><div class="bar-num">10</div><div class="bar-fill" style="height:62px;background:#C85C38"></div><div class="bar-day">六</div></div>
+              <div class="bar-col"><div class="bar-num">5</div><div class="bar-fill" style="height:32px;background:linear-gradient(180deg,#E8B84B,#D4A03A)"></div><div class="bar-day">日</div></div>
+            </div>
+          </div>
+          <div class="prog-list">
+            <div class="chart-title">掌握程度分布</div>
+            <div class="prog-row"><span class="prog-label">已背诵</span><div class="prog-track"><div class="prog-fill" style="width:35%;background:#2D5A4A"></div></div><span class="prog-pct">35%</span></div>
+            <div class="prog-row"><span class="prog-label">熟悉</span><div class="prog-track"><div class="prog-fill" style="width:25%;background:#4A90A4"></div></div><span class="prog-pct">25%</span></div>
+            <div class="prog-row"><span class="prog-label">学习中</span><div class="prog-track"><div class="prog-fill" style="width:28%;background:#E8B84B"></div></div><span class="prog-pct">28%</span></div>
+            <div class="prog-row"><span class="prog-label">初听</span><div class="prog-track"><div class="prog-fill" style="width:12%;background:#D9D0C4"></div></div><span class="prog-pct">12%</span></div>
+          </div>
+          <div style="padding:0 14px 6px"><div class="chart-title">近期学习</div></div>
+          <div class="recent-list">
+            <div class="recent-item"><div class="recent-char">春</div><div><div class="recent-title">春晓 · <span style="font-weight:400;color:#8B7355">孟浩然</span></div></div><span class="recent-date">今天</span><span class="status-tag" style="background:#2D5A4A20;color:#2D5A4A">已背诵</span></div>
+            <div class="recent-item"><div class="recent-char">咏</div><div><div class="recent-title">咏柳 · <span style="font-weight:400;color:#8B7355">贺知章</span></div></div><span class="recent-date">昨天</span><span class="status-tag" style="background:#4A90A420;color:#4A90A4">熟悉</span></div>
+            <div class="recent-item"><div class="recent-char">静</div><div><div class="recent-title">静夜思 · <span style="font-weight:400;color:#8B7355">李白</span></div></div><span class="recent-date">周三</span><span class="status-tag" style="background:#E8B84B20;color:#c9941a">学习中</span></div>
+            <div class="recent-item"><div class="recent-char">绝</div><div><div class="recent-title">绝句 · <span style="font-weight:400;color:#8B7355">杜甫</span></div></div><span class="recent-date">周二</span><span class="status-tag" style="background:#D9D0C450;color:#8B7355">初听</span></div>
+          </div>
+        </div>
+
+      </div><!-- phone-screen -->
+    </div><!-- phone-frame -->
+  </div><!-- phone-side -->
+</div><!-- demo-layout -->
+
+<script>
+// ===== DATA =====
+const ALBUMS = [
+  {
+    id: 0, title: '春晓·四季之诗', grade: '1-2年级',
+    age: ['4-6岁','7-9岁'], grades: ['1年级','2年级'], themes: ['山水'],
+    img: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '春晓', author: '孟浩然', text: '春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。', learned: true },
+      { title: '咏柳', author: '贺知章', text: '碧玉妆成一树高，万条垂下绿丝绦。不知细叶谁裁出，二月春风似剪刀。', learned: true },
+      { title: '绝句', author: '杜甫', text: '两个黄鹂鸣翠柳，一行白鹭上青天。窗含西岭千秋雪，门泊东吴万里船。', learned: false },
+    ]
+  },
+  {
+    id: 1, title: '静夜思·思乡情', grade: '3-4年级',
+    age: ['7-9岁'], grades: ['3年级','4年级'], themes: ['思乡'],
+    img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '静夜思', author: '李白', text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。', learned: true },
+      { title: '望庐山瀑布', author: '李白', text: '日照香炉生紫烟，遥看瀑布挂前川。飞流直下三千尺，疑是银河落九天。', learned: false },
+    ]
+  },
+  {
+    id: 2, title: '三年级必背古诗', grade: '3年级',
+    age: ['7-9岁'], grades: ['3年级'], themes: ['节气','励志'],
+    img: 'https://images.unsplash.com/photo-1545038522-9bb451739ab9?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '早发白帝城', author: '李白', text: '朝辞白帝彩云间，千里江陵一日还。两岸猿声啼不住，轻舟已过万重山。', learned: false },
+      { title: '江雪', author: '柳宗元', text: '千山鸟飞绝，万径人踪灭。孤舟蓑笠翁，独钓寒江雪。', learned: false },
+      { title: '元日', author: '王安石', text: '爆竹声中一岁除，春风送暖入屠苏。千门万户曈曈日，总把新桃换旧符。', learned: false },
+    ]
+  },
+  {
+    id: 3, title: '中秋咏月集', grade: '5-6年级',
+    age: ['10-12岁'], grades: ['5年级'], themes: ['节气','思乡'],
+    img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '静夜思', author: '李白', text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。', learned: false },
+      { title: '水调歌头', author: '苏轼', text: '明月几时有？把酒问青天。不知天上宫阙，今夕是何年。我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间。', learned: false },
+      { title: '望月怀远', author: '张九龄', text: '海上生明月，天涯共此时。情人怨遥夜，竟夕起相思。', learned: false },
+    ]
+  }
+];
+
+// album card images in home grid (index matches ALBUMS)
+const ALBUM_CARD_IMGS = [
+  'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1545038522-9bb451739ab9?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop&auto=format',
+];
+
+let currentScript = null; // { title, author, text, goal, albumTitle, age }
+let currentAlbumId = 0;
+
+// ===== SCRIPT PANEL =====
+// 根据专辑年龄标签映射讲解层级
+// age: '4-6岁'→L1, '7-9岁'→L2, '10-12岁'→L3
+function getLevel(age) {
+  if (!age || age === '4-6岁') return 'L1';
+  if (age === '7-9岁') return 'L2';
+  return 'L3';
+}
+
+// 分龄讲解数据：每首诗含L1/L2/L3三层，以及互动引导
+const POEM_DATA = {
+  '春晓': {
+    author: '孟浩然', dynasty: '唐代',
+    L1: {
+      intro: '你听——这首诗在说一个春天的早晨，诗人睡得好香，都没发现天亮了。',
+      keyword: '"啼鸟"就是小鸟在叫，"花落"就是花瓣掉下来了。',
+      life: '就像你早上睡觉睡得很香，突然被小鸟叫声叫醒——是不是有点舍不得起床？',
+      back: '所以诗人说：春眠不觉晓，处处闻啼鸟。'
+    },
+    L2: {
+      intro: '这首诗写春天早晨的样子。诗人孟浩然睡得太香，不知不觉天就亮了，醒来听到鸟叫，又想起昨夜的风雨。',
+      keyword: '"不觉晓"是不知不觉天就亮了；"啼鸟"是鸟儿啼叫；"花落知多少"，诗人不直接说花掉了，而是问了一个问题，让我们自己去感受。',
+      life: '这四句话有声音（鸟叫、风雨），有画面（落花），就像一首春天的小曲，轻轻唱给你听。',
+      back: '再听一遍：夜来风雨声，花落知多少。'
+    },
+    L3: {
+      intro: '这首诗表面写春日好眠，实际流露出对春天的珍惜和淡淡惋惜。诗人没说一个"惜"字，却让人读出惜春之情。',
+      keyword: '"花落知多少"是全诗的情感落点——用问句代替感叹，留白给读者。前三句铺垫，最后一句点情，这是"以景带情"的经典写法。',
+      life: '孟浩然用听觉（啼鸟、风雨声）引出视觉（花落），层层递进，结构很精妙。',
+      back: '回到原诗：春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。'
+    },
+    interact: { chat: '想不想跟孟浩然聊聊，问他昨晚睡得怎么样？', qa: '你有没有想问的？比如"花落了多少"或者"为什么不觉晓"？', recite: '想跟着读一遍吗？我来带你，一句一句来。' }
+  },
+  '咏柳': {
+    author: '贺知章', dynasty: '唐代',
+    L1: {
+      intro: '你看，这首诗在说一棵绿绿的高柳树，枝条像丝带一样垂下来，特别漂亮！',
+      keyword: '"绿丝绦"就是绿色的丝带，"剪刀"就是我们剪纸用的剪刀。',
+      life: '你见过柳树吗？细细的枝条随风飘，像不像妈妈的长发？',
+      back: '二月春风似剪刀——春风就像剪刀，把叶子都裁出来啦！'
+    },
+    L2: {
+      intro: '诗人贺知章把柳树比成一个美丽的女孩，把柳枝比成绿色的丝带，最后问出一个有趣的问题——这么细的叶子是谁剪出来的？',
+      keyword: '"碧玉妆成"是用碧绿的玉石装扮；"万条垂下绿丝绦"写出柳枝的多和柔；"似剪刀"是一个比喻，答案就是春风！',
+      life: '诗人用比喻让我们感受到春天生命的神奇——风是无形的，但诗人让你"看见"了它。',
+      back: '不知细叶谁裁出，二月春风似剪刀。'
+    },
+    L3: {
+      intro: '这首诗从整体到细节：先写整棵柳树，再写柳枝，最后落到一片叶子。结尾用设问+比喻点睛，把无形的春风写得具体可感。',
+      keyword: '"碧玉妆成"是拟人；"似剪刀"是全诗最精彩的比喻；整首诗用"问—答"结构，先问谁裁出，再答是春风，比直接描述生动得多。',
+      life: '贺知章的这种写法叫"由大及小、卒章显志"——最后一句才是真正的诗眼。',
+      back: '感受这个比喻：二月春风似剪刀。'
+    },
+    interact: { chat: '想不想问问贺知章，他为什么觉得春风像剪刀？', qa: '有问题想问吗？比如"碧玉是什么"？', recite: '来，碧玉妆成一树高……跟我读。' }
+  },
+  '绝句': {
+    author: '杜甫', dynasty: '唐代',
+    L1: {
+      intro: '这首诗里有好多颜色：黄色的小鸟、绿色的柳树、白色的大鸟、蓝蓝的天空，像一幅画！',
+      keyword: '"黄鹂"是黄色的会唱歌的小鸟，"白鹭"是白色的大鸟。',
+      life: '你画过画吗？诗人用几句话，就把眼前的美景画出来了。',
+      back: '两个黄鹂鸣翠柳，一行白鹭上青天——闭上眼睛，你能想象出这幅画吗？'
+    },
+    L2: {
+      intro: '杜甫住在成都，从窗户往外看，把眼前的春日美景写成这首诗。诗里颜色特别丰富：黄、翠、白、青。',
+      keyword: '"千秋雪"是积了几千年的雪；"万里船"是从很远地方来的船；诗里先写近处（鸟），再写远处（雪山、船），从近到远像一幅立体的画。',
+      life: '诗人杜甫当时生活虽然不容易，但看到这么美的景色，心情也变好了。',
+      back: '窗含西岭千秋雪，门泊东吴万里船。'
+    },
+    L3: {
+      intro: '这首诗是律诗对仗的经典示范：四句话写四个画面，两两对仗，动静结合，色彩鲜明。',
+      keyword: '黄↔白，翠↔青，鸣↔上，千秋↔万里——每句都形成工整对仗。"窗含"最妙，不说"看见"而说"含"，窗户像画框一样把雪山框进来，静景有了生命感。',
+      life: '前两句动景（鸟鸣、鹭飞），后两句静景（雪山、停船），动静结合，这是律诗的标准写法。',
+      back: '体会对仗之美：两个黄鹂鸣翠柳，一行白鹭上青天。'
+    },
+    interact: { chat: '想不想问问杜甫，他住的草堂外面到底有多漂亮？', qa: '有没有想问的？比如"黄鹂是什么鸟"？', recite: '颜色这么多，来试试——两个黄鹂……' }
+  },
+  '静夜思': {
+    author: '李白', dynasty: '唐代',
+    L1: {
+      intro: '这首诗在说一个晚上，诗人看到月光，就想起了自己的家。',
+      keyword: '"月光"就是月亮发出的光，"故乡"就是自己的老家。',
+      life: '就像你如果不在家睡觉，也会想爸爸妈妈——诗人离家很远，看到月亮就想家了。',
+      back: '低头思故乡——低下头，心里想着家。'
+    },
+    L2: {
+      intro: '"床前明月光"——诗人半夜醒来，看到地上白白的月光，以为是霜，抬起头才发现是月亮，心里就想起了家。',
+      keyword: '"疑是地上霜"是说月光白得像霜；"举头"是抬头，"低头"是低头，这两个动作把情绪的变化写出来了。',
+      life: '李白一个人在外，夜里看到月亮，心想：我的家人现在是不是也看着同一个月亮？',
+      back: '举头望明月，低头思故乡。'
+    },
+    L3: {
+      intro: '这首诗看似写月，实际写情。月亮是触发思乡的线索，前两句写景（月光如霜），后两句写情（举头低头间，乡愁涌上来），情感转折非常自然。',
+      keyword: '"疑是地上霜"制造错觉，留下悬念；"举头""低头"两个对比动作，把从迷惑到思乡的心理过程写得传神。这是"借景抒情"的经典。',
+      life: '月亮在古诗里常代表思念，李白用20个字，写尽了离乡在外的心境——之所以千年传诵，是因为每个人都有这种感受。',
+      back: '再感受一遍：床前明月光，疑是地上霜。举头望明月，低头思故乡。'
+    },
+    interact: { chat: '想不想跟李白聊聊，问他那天晚上看到了什么？', qa: '你有没有想问这首诗的问题？比如"为什么把月光说成霜"？', recite: '只有二十个字，来跟读——床前明月光……' }
+  },
+  '望庐山瀑布': {
+    author: '李白', dynasty: '唐代',
+    L1: {
+      intro: '这首诗在说一个超级大的瀑布！水从好高好高的山上哗哗地冲下来，可壮观了！',
+      keyword: '"瀑布"就是从山上流下来的水，"银河"就是夜晚天上那条亮亮的星星带。',
+      life: '李白觉得这瀑布太厉害了，就像天上的银河掉下来了一样！',
+      back: '飞流直下三千尺——水从好高好高的地方直直地冲下来！'
+    },
+    L2: {
+      intro: '李白看到庐山大瀑布，太震撼了，用夸张的方法把这种感受写出来。',
+      keyword: '"香炉"是庐山一座峰，因云雾缭绕像香炉冒烟；"三千尺"是夸张，表示很高；"银河落九天"把瀑布比作天上的银河，夸张而壮美。',
+      life: '诗人先从远处看（遥看），再用夸张（三千尺），最后用比喻（银河），层层递进，让我们感受到瀑布的气势。',
+      back: '飞流直下三千尺，疑是银河落九天。'
+    },
+    L3: {
+      intro: '这首诗的核心是"夸张+比喻"，是李白浪漫主义风格的典型体现。他用极度夸张来表达对自然的震撼与惊叹。',
+      keyword: '"飞流直下"写速度和力量；"三千尺"数字夸张；"疑是"制造虚实结合——真实的瀑布与想象的银河叠加，画面感极强。',
+      life: '李白诗里常用夸张：白发三千丈、三千尺……夸张不是撒谎，是把内心感受放大，越夸张越说明他真的被感动了。',
+      back: '感受李白的气势：飞流直下三千尺，疑是银河落九天。'
+    },
+    interact: { chat: '想不想问李白，他看到瀑布时心情怎么样？', qa: '你有问题想问吗？比如"三千尺到底有多高"？', recite: '这句很有气势，大声读——飞流直下三千尺……' }
+  },
+  '早发白帝城': {
+    author: '李白', dynasty: '唐代',
+    L1: {
+      intro: '这首诗在说一条小船，在大江上飞快地走，一眨眼就过了好多好多山！',
+      keyword: '"轻舟"就是小船，"万重山"就是好多好多座山。',
+      life: '就像你坐车，一会儿就到了——诗人的船也超级快！',
+      back: '轻舟已过万重山——一眨眼，船就过了好多山！'
+    },
+    L2: {
+      intro: '李白被赦免（就是被原谅了），超级高兴，坐船回家，把这份喜悦写成了这首诗。',
+      keyword: '"朝辞"是早晨告别；"彩云间"说明白帝城很高；"千里…一日还"写速度，也写心情——心情好，觉得时间过得特别快。',
+      life: '诗人高兴得心都飞起来了，所以觉得船走得飞快，猿猴的叫声还没听完，就已经过了重重山峦。',
+      back: '两岸猿声啼不住，轻舟已过万重山。'
+    },
+    L3: {
+      intro: '这首诗写李白被赦后的欣喜，但诗中没有一个"快"字、没有一个"喜"字，却让人感受到船速如飞、心情雀跃。',
+      keyword: '"千里江陵一日还"用夸张写快；"猿声啼不住"用侧面描写衬托速度——猿猴一直在叫，但船太快，叫声都跟不上了。',
+      life: '这是"不着一字，尽得风流"——情感全藏在速度感里，这是古诗含蓄表达情绪的高级写法。',
+      back: '感受这份轻快：轻舟已过万重山。'
+    },
+    interact: { chat: '想不想问李白，那天坐船有多开心？', qa: '有没有想问的？比如"白帝城在哪里"？', recite: '来跟读——朝辞白帝彩云间……' }
+  },
+  '江雪': {
+    author: '柳宗元', dynasty: '唐代',
+    L1: {
+      intro: '这首诗在说一个大雪天，到处都安安静静的，只有一个老爷爷在江上钓鱼。',
+      keyword: '"孤舟"是一条孤单的小船，"蓑笠翁"是穿蓑衣戴斗笠的老爷爷。',
+      life: '你见过大雪天吗？外面安安静静，什么声音都没有——这首诗就是那种感觉。',
+      back: '孤舟蓑笠翁，独钓寒江雪——一个老爷爷，在雪里，静静地钓鱼。'
+    },
+    L2: {
+      intro: '大雪天，诗人看到一幅孤独的画面：空旷的江面上，只有一个老渔翁在钓鱼。连鸟都不见了，连脚印都没有。',
+      keyword: '"千山鸟飞绝"是连鸟都不飞了；"万径人踪灭"是路上一个人都没有；"独钓"里的"独"字最重要，写出了孤独，也写出了坚持。',
+      life: '诗人柳宗元自己被贬到很远的地方，心里很孤独，借老渔翁表达自己的心情——再难也要坚持。',
+      back: '孤舟蓑笠翁，独钓寒江雪。'
+    },
+    L3: {
+      intro: '这首诗用极简笔墨构建"绝境图"。数量词从大到小（千山→万径→孤舟→独钓），层层收缩，最后落到一个孤独的人，反衬出人的渺小与坚韧。',
+      keyword: '"绝"和"灭"把世界写得彻底安静；"孤""独"是诗眼；全诗没有直接描写雪的样子，却满篇是雪——这是"留白"手法，雪在意境里，不在文字里。',
+      life: '柳宗元被贬永州，这首诗是他内心独白：世界越冷清，他越要独自坚守。孤独，但不妥协。',
+      back: '感受这份孤寂与坚定：孤舟蓑笠翁，独钓寒江雪。'
+    },
+    interact: { chat: '想不想问柳宗元，那个老爷爷在雪地钓鱼，冷不冷？', qa: '有问题想问吗？比如"为什么大雪天还要钓鱼"？', recite: '只有二十字，来跟读——千山鸟飞绝……' }
+  },
+  '元日': {
+    author: '王安石', dynasty: '宋代',
+    L1: {
+      intro: '这首诗在说过年啦！放鞭炮、换新的门画，超级热闹！',
+      keyword: '"爆竹"就是鞭炮，"新桃换旧符"就是把旧门画换成新的。',
+      life: '就像你过春节贴春联、放鞭炮——诗人写的就是这种过年的热闹！',
+      back: '爆竹声中一岁除——鞭炮声里，旧的一年就过去啦！'
+    },
+    L2: {
+      intro: '王安石描写宋朝过春节的热闹：放鞭炮、喝屠苏酒、贴新桃符（也就是春联的前身）。',
+      keyword: '"一岁除"是一年过去了；"屠苏"是新年喝的酒；"曈曈日"是太阳刚升起时的亮光；"换新桃"是贴新春联的习俗。',
+      life: '王安石当时在推行新政，"新桃换旧符"也暗含他的愿望——新的事物要替换旧的，就像改革一样。',
+      back: '总把新桃换旧符。'
+    },
+    L3: {
+      intro: '这首诗表面写春节喜庆，实际暗藏王安石的政治抱负。"新桃换旧符"是双关——字面是贴春联，深层是"新法替旧制"。',
+      keyword: '"曈曈日"象征新的开始；三个场景（鞭炮/屠苏/桃符）渲染除旧布新；"总把"二字写出一种年年如此、理所当然的力量感。',
+      life: '古诗中"借节日言志"的写法并不少见，但像王安石这样把个人政治理想与民俗画面融合得如此自然的，并不多。',
+      back: '爆竹声中一岁除，总把新桃换旧符。'
+    },
+    interact: { chat: '想不想问王安石，他最喜欢过年哪个环节？', qa: '有问题想问吗？比如"屠苏酒是什么味道"？', recite: '过年的诗，大声读——爆竹声中一岁除……' }
+  },
+  '水调歌头': {
+    author: '苏轼', dynasty: '宋代',
+    L1: {
+      intro: '中秋节，苏轼一边看月亮，一边想念自己的弟弟，把这种思念写成了这首词。',
+      keyword: '"明月"就是圆圆的月亮，"人间"就是我们住的地方。',
+      life: '就像你过节如果见不到好朋友，会不会一边看月亮一边想他们？',
+      back: '但愿人长久，千里共婵娟——希望大家都健康，虽然远，也能一起看这同一个月亮。'
+    },
+    L2: {
+      intro: '苏轼中秋节和弟弟分离，举杯问月，写出这首词。他想飞上月宫，又怕太冷，最后说：还是人间好，希望大家都平安。',
+      keyword: '"把酒问青天"是端着酒杯问苍天；"琼楼玉宇"是传说中月宫里的宫殿；"高处不胜寒"是说月宫太冷，呆不住。',
+      life: '苏轼先想象飞上月亮，又觉得人间更好，最后把对弟弟的思念化成祝福。这种"想象—现实—祝福"的转变，很有情感层次。',
+      back: '但愿人长久，千里共婵娟。'
+    },
+    L3: {
+      intro: '这首词借中秋望月，从追问（明月几时有）到幻想（欲乘风归去）到释怀（何似在人间）再到祝愿，情感层层推进，展现了苏轼旷达的人生观。',
+      keyword: '"高处不胜寒"不只说月宫冷，也暗指仕途高处的孤独；"何似在人间"是放下，是接受；"千里共婵娟"是全词的情感升华——距离无法阻止共同的心意。',
+      life: '"但愿人长久"成为千古名句，是因为它把个人思念转化为对所有人的祝愿，超越了小我，触动了所有人。',
+      back: '感受这份旷达：但愿人长久，千里共婵娟。'
+    },
+    interact: { chat: '想不想跟苏轼聊聊，那晚中秋他心情怎么样？', qa: '有想问的吗？比如"为什么说高处不胜寒"？', recite: '来跟读这句——但愿人长久，千里共婵娟。' }
+  },
+  '望月怀远': {
+    author: '张九龄', dynasty: '唐代',
+    L1: {
+      intro: '张九龄在海边看到月亮升起来，想起了远方的家人，心里好想念他们。',
+      keyword: '"海上"就是大海上，"天涯"就是很远很远的地方。',
+      life: '就像你想念外地的爷爷奶奶——两个人虽然很远，但看的是同一个月亮。',
+      back: '海上生明月，天涯共此时——大家虽然分开，但都在同一时刻看着同一个月亮。'
+    },
+    L2: {
+      intro: '大海上升起一轮明月，诗人张九龄想到：远方的亲人此刻也在看这同一个月亮，思念的心情涌上来。',
+      keyword: '"天涯共此时"是全诗的关键——距离再远，月亮是共同的；"竟夕"是整整一夜；"起相思"说明思念强烈，一整夜都睡不着。',
+      life: '月亮在古诗里常常代表思念，因为它是人们共同看见的东西，不管你在哪里，抬头都能看到同一个月亮。',
+      back: '海上生明月，天涯共此时。'
+    },
+    L3: {
+      intro: '这首诗开篇即是名句，"海上生明月，天涯共此时"以壮阔景象起笔，将个人思念放入天地大背景，格局宏大而情感真挚。',
+      keyword: '"生"字比"升"字妙——月亮不是升起来的，是从海上"诞生"的，有一种蓬勃的生命感；"竟夕起相思"是情感的收束，把漫漫长夜的辗转不眠写得极为真实。',
+      life: '开篇写景，结尾写情，这是古诗"起承转合"结构的典型。大景衬小情，越是宏大的背景，越反衬出个人情感的深切。',
+      back: '再感受开篇：海上生明月，天涯共此时。'
+    },
+    interact: { chat: '想不想问张九龄，他在海边看月亮时想到了谁？', qa: '有想问的吗？比如"天涯是哪里"？', recite: '来跟读——海上生明月，天涯共此时。' }
+  }
+};
+
+// 年龄段标签
+const AGE_LABELS = { L1: '4-6岁·启蒙版', L2: '7-9岁·理解版', L3: '10-12岁·深度版' };
+const AGE_BADGE_CLASS = { L1: 'low', L2: 'mid', L3: 'high' };
+
+const POEM_INTROS = {
+  '春晓': { author: '孟浩然', intro: '这首诗是唐代诗人孟浩然的名作，写的是春天早晨醒来的所见所闻，语言简洁却意境深远。' },
+  '咏柳': { author: '贺知章', intro: '唐代诗人贺知章以柳树为题，描写早春时节柳树萌发的生机，将春风比作巧手的裁缝。' },
+  '绝句': { author: '杜甫', intro: '杜甫旅居成都时所作，描绘了草堂附近春日美景，色彩鲜明，动静相宜。' },
+  '静夜思': { author: '李白', intro: '这是李白最广为人知的思乡诗，短短二十字，写出了游子望月思乡的情感。' },
+  '望庐山瀑布': { author: '李白', intro: '李白描写庐山瀑布的壮观景象，用夸张的手法展现了大自然的磅礴气势。' },
+  '早发白帝城': { author: '李白', intro: '李白遇赦后乘船东下时所作，全诗充满轻快喜悦之情，一气呵成。' },
+  '江雪': { author: '柳宗元', intro: '柳宗元被贬永州时所作，以极简的笔墨勾勒出一幅寒江独钓图，寄托孤寂之情。' },
+  '元日': { author: '王安石', intro: '王安石描写除夕和新年的景象，借节日热闹景象表达了除旧布新的政治抱负。' },
+  '水调歌头': { author: '苏轼', intro: '苏轼中秋怀念弟弟苏辙所作，借明月抒发人生感慨，"但愿人长久"成为千古名句。' },
+  '望月怀远': { author: '张九龄', intro: '张九龄借望月抒怀，写对远方亲人的思念，语言典雅，情感真挚。' },
+};
+
+const POEM_EXPLANATIONS = {
+  '春晓': '春眠不觉晓——春天睡得香，不知不觉天就亮了。\n处处闻啼鸟——到处都能听到鸟儿在鸣叫。\n夜来风雨声——昨夜刮风下雨声音很大。\n花落知多少——不知道有多少花瓣飘落了呢。',
+  '咏柳': '碧玉妆成一树高——碧绿的玉石妆扮成高高的柳树。\n万条垂下绿丝绦——千万条柳枝垂挂下来像绿色的丝带。\n不知细叶谁裁出——不知道这纤细的叶子是谁剪裁出来的。\n二月春风似剪刀——原来是二月春风像剪刀一样灵巧。',
+  '绝句': '两个黄鹂鸣翠柳——两只黄鹂在翠绿的柳树上鸣叫。\n一行白鹭上青天——一行白鹭飞向湛蓝的天空。\n窗含西岭千秋雪——从窗户望去，西边山岭上积雪千年未融。\n门泊东吴万里船——门前停泊着来自东吴的万里远船。',
+  '静夜思': '床前明月光——床前洒满了明亮的月光。\n疑是地上霜——好像是地上铺了一层白霜。\n举头望明月——抬起头来望向那轮明月。\n低头思故乡——低下头来思念起遥远的故乡。',
+  '望庐山瀑布': '日照香炉生紫烟——阳光照射香炉峰，升起紫色的云烟。\n遥看瀑布挂前川——远远望去，瀑布像挂在山前的白练。\n飞流直下三千尺——水流飞泻直落三千尺。\n疑是银河落九天——好像是银河从天上倾泻而下。',
+  '早发白帝城': '朝辞白帝彩云间——清晨告别白帝城，彩云缭绕之间。\n千里江陵一日还——千里之遥的江陵，一天就能回到。\n两岸猿声啼不住——两岸猿猴的啼声不断。\n轻舟已过万重山——轻快的小船已经穿过了重重山峦。',
+  '江雪': '千山鸟飞绝——千山万岭不见一只飞鸟。\n万径人踪灭——千路万道不见一个人影。\n孤舟蓑笠翁——只有一叶孤舟上，坐着一位身披蓑衣戴着斗笠的老翁。\n独钓寒江雪——在风雪弥漫的江上独自垂钓。',
+  '元日': '爆竹声中一岁除——爆竹声中旧的一年过去了。\n春风送暖入屠苏——春风把温暖送来，人们喝着屠苏酒庆新年。\n千门万户曈曈日——千家万户迎来了新年第一轮红日。\n总把新桃换旧符——都用新的桃符替换了旧的桃符。',
+  '水调歌头': '明月几时有？把酒问青天——明月什么时候才有？举起酒杯问苍天。\n不知天上宫阙，今夕是何年——不知道天上的宫殿里，今晚是什么年月。\n我欲乘风归去——我想乘着风飞回天上。\n高处不胜寒——只怕高处太寒冷，难以承受。\n起舞弄清影，何似在人间——在月光下起舞，和自己的影子嬉戏，哪里比得上在人间呢。',
+  '望月怀远': '海上生明月，天涯共此时——大海上升起一轮明月，远在天涯的人们此刻共同仰望。\n情人怨遥夜，竟夕起相思——深情的人抱怨夜太漫长，整夜都在思念远方的人。',
+};
+
+function buildScriptHTML(script) {
+  if (!script) return '<div style="color:var(--brown-mid);font-size:13px;text-align:center;padding:20px 0">暂无讲解内容</div>';
+  const poemTitle = script.title.split(' — ')[0];
+  const level = getLevel(script.age);
+  const data = POEM_DATA[poemTitle];
+  const lv = data ? data[level] : null;
+  const author = data ? data.author : (script.title.split(' — ')[1] || '');
+  const dynasty = data ? data.dynasty : '';
+  const interact = data ? data.interact : null;
+
+  // 讲解链路：朗诵→(朝代背景，仅L2/L3)→大意→关键词→联系生活→回到原诗
+  const showBackground = (level === 'L2' || level === 'L3');
+
+  let html = `
+    <div class="script-poem-title">${poemTitle}</div>
+    <div class="script-poem-author">${author}${dynasty ? ' · ' + dynasty : ''} · ${script.albumTitle || ''}</div>
+    <div style="margin-bottom:14px;display:flex;gap:6px;flex-wrap:wrap">
+      <span class="age-badge ${AGE_BADGE_CLASS[level]}">${AGE_LABELS[level]}</span>
+      ${script.goal ? `<span style="background:#fff0eb;color:var(--red);font-size:10px;padding:2px 8px;border-radius:8px;font-weight:500">目标：${script.goal}</span>` : ''}
+    </div>
+
+    <div class="script-section-label">① 朗诵原文</div>
+    <div class="script-poem-text" style="margin-bottom:14px">${script.text.replace(/[，。？！]/g, m => m + '<br>').replace(/<br>$/, '')}</div>
+  `;
+
+  if (showBackground) {
+    const bgText = level === 'L3'
+      ? `${author}，${dynasty}诗人。这首诗的背后有一段值得了解的故事。`
+      : `这首诗的作者是${author}，生活在${dynasty}。`;
+    html += `
+    <div class="script-section-label">② 朝代背景</div>
+    <div class="script-intro-text">${bgText}</div>
+    `;
+  }
+
+  if (lv) {
+    html += `
+    <div class="script-section-label">${showBackground ? '③' : '②'} 先说大意</div>
+    <div class="script-chain-step">
+      <div class="script-step-badge">大</div>
+      <div class="script-step-content"><div class="script-step-body">${lv.intro}</div></div>
+    </div>
+
+    <div class="script-section-label">${showBackground ? '④' : '③'} 解释关键词</div>
+    <div class="script-chain-step">
+      <div class="script-step-badge green">词</div>
+      <div class="script-step-content"><div class="script-step-body">${lv.keyword}</div></div>
+    </div>
+
+    <div class="script-section-label">${showBackground ? '⑤' : '④'} 联系生活</div>
+    <div class="script-chain-step">
+      <div class="script-step-badge gold">生</div>
+      <div class="script-step-content"><div class="script-step-body">${lv.life}</div></div>
+    </div>
+
+    <div class="script-section-label">${showBackground ? '⑥' : '⑤'} 回到原诗</div>
+    <div class="script-chain-step">
+      <div class="script-step-badge">回</div>
+      <div class="script-step-content"><div class="script-step-body"><em>${lv.back}</em></div></div>
+    </div>
+    `;
+  } else {
+    const fallbackIntro = POEM_INTROS[poemTitle] || {};
+    const fallbackExp = POEM_EXPLANATIONS[poemTitle] || '';
+    html += `
+    <div class="script-section-label">② 诗词讲解</div>
+    <div class="script-intro-text">${fallbackIntro.intro || '这是一首经典古诗，让我们一起来欣赏。'}</div>
+    ${fallbackExp ? `<div class="script-explain-text" style="margin-top:8px">${fallbackExp.replace(/\n/g,'<br>')}</div>` : ''}
+    `;
+  }
+
+  if (interact) {
+    html += `
+    <div class="script-section-label" style="margin-top:4px">互动引导（熏听结束后）</div>
+    <div class="interact-cards">
+      <div class="interact-card">
+        <div class="interact-card-icon">💬</div>
+        <div><div class="interact-card-title">跟诗人聊天</div><div class="interact-card-desc">${interact.chat}</div></div>
+      </div>
+      <div class="interact-card">
+        <div class="interact-card-icon">❓</div>
+        <div><div class="interact-card-title">提问答疑</div><div class="interact-card-desc">${interact.qa}</div></div>
+      </div>
+      <div class="interact-card">
+        <div class="interact-card-icon">📖</div>
+        <div><div class="interact-card-title">跟读背诵</div><div class="interact-card-desc">${interact.recite}</div></div>
+      </div>
+    </div>
+    `;
+  }
+
+  return html;
+}
+
+function showScriptPanel() {
+  document.getElementById('scriptContent').innerHTML = buildScriptHTML(currentScript);
+  document.getElementById('scriptOverlay').classList.add('visible');
+}
+function hideScriptPanel() {
+  document.getElementById('scriptOverlay').classList.remove('visible');
+}
+function hideScriptOnOverlay(e) {
+  if (e.target === document.getElementById('scriptOverlay')) hideScriptPanel();
+}
+let selectedPoemIdx = -1;
+let selectedGoalEl = null;
+const LOOP_MODES = [
+  { icon: '🔁', label: '列表循环' },
+  { icon: '🔂', label: '单曲循环' },
+  { icon: '▶',  label: '顺序播放' },
+];
+let loopIdx = 0;
+let isSpeaking = false;
+let pendingTask = null;    // {title, text} set when push is made
+let autoPlayOn = false;
+let timerTime = null;      // '08:00' string or null
+
+// ===== 音色选择 =====
+// 优先顺序：微软小晓(Natural) > 微软晓伊 > 微软小燕(Edge本地) > Google普通话 > 任意zh-CN
+const PREFERRED_VOICES = [
+  'Microsoft Xiaoxiao Online (Natural) - Chinese (Mainland)',
+  'Microsoft Xiaoyi Online (Natural) - Chinese (Mainland)',
+  'Microsoft Xiaoyou Online (Natural) - Chinese (Mainland)',
+  'Microsoft XiaoXiao Online (Natural) - Chinese (Mainland)',
+  'Microsoft Xiaoyan - Chinese (Simplified, PRC)',
+  'Google 普通话（中国大陆）',
+];
+let selectedVoice = null;
+
+function getChineseVoice() {
+  if (selectedVoice) return selectedVoice;
+  const voices = window.speechSynthesis.getVoices();
+  for (const name of PREFERRED_VOICES) {
+    const v = voices.find(v => v.name === name);
+    if (v) { selectedVoice = v; return v; }
+  }
+  // 找任何 zh-CN 女声（名字含 xiao/xiu/xue/ting/mei 忽略大小写）
+  const soft = voices.find(v => v.lang === 'zh-CN' && /xiao|xiu|xue|ting|mei|晓|婷|悦/i.test(v.name));
+  if (soft) { selectedVoice = soft; return soft; }
+  // 兜底：任意 zh-CN
+  const any = voices.find(v => v.lang === 'zh-CN' || v.lang === 'zh_CN');
+  if (any) { selectedVoice = any; return any; }
+  return null;
+}
+
+// voices 异步加载
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => { selectedVoice = null; getChineseVoice(); };
+}
+
+// Active filters
+let activeAge = '全部', activeGrade = '全部', activeTheme = '全部';
+
+// ===== CLOCK =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clockH').textContent = String(now.getHours()).padStart(2,'0');
+  document.getElementById('clockM').textContent = String(now.getMinutes()).padStart(2,'0');
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// ===== NAVIGATION =====
+function goTo(screenId) {
+  document.querySelectorAll('.app-screen').forEach(s => {
+    s.classList.remove('hidden','slide-left');
+    if (s.id !== 'screen-' + screenId) s.classList.add('hidden');
+  });
+}
+function goBack(screenId) {
+  const cur = document.querySelector('.app-screen:not(.hidden)');
+  if (cur) { cur.classList.add('slide-left'); }
+  setTimeout(() => goTo(screenId), 10);
+}
+
+// ===== FILTER =====
+function setFilter(btn, group) {
+  btn.closest('.filter-row').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const val = btn.textContent;
+  if (group === 'age') activeAge = val;
+  else if (group === 'grade') activeGrade = val;
+  else if (group === 'theme') activeTheme = val;
+  renderAlbumGrid();
+}
+
+function renderAlbumGrid() {
+  const grid = document.getElementById('albumGrid');
+  const filtered = ALBUMS.filter(a => {
+    const ageOk = activeAge === '全部' || a.age.includes(activeAge);
+    const gradeOk = activeGrade === '全部' || a.grades.includes(activeGrade);
+    const themeOk = activeTheme === '全部' || a.themes.includes(activeTheme);
+    return ageOk && gradeOk && themeOk;
+  });
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px 0;color:#8B7355;font-size:13px">暂无符合条件的专辑</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(a => `
+    <button class="album-card" onclick="goToAlbum(${a.id})">
+      <div class="album-card-img">
+        <img src="${ALBUM_CARD_IMGS[a.id]}" alt="${a.title}">
+        <div class="album-count">${a.poems.length}首</div>
+      </div>
+      <div class="album-card-info">
+        <div class="album-card-title">${a.title}</div>
+        <div class="album-card-grade">${a.grade} · ${a.themes[0]}</div>
+      </div>
+    </button>
+  `).join('');
+}
+
+// ===== ALBUM =====
+function goToAlbum(idx) {
+  currentAlbumId = idx;
+  const album = ALBUMS[idx];
+  document.getElementById('albumHeroImg').src = album.img;
+  document.getElementById('albumHeroTitle').textContent = album.title;
+  document.getElementById('albumHeroSub').textContent = album.grade + ' · ' + album.poems.length + '首古诗';
+  const learnedCount = album.poems.filter(p => p.learned).length;
+  document.getElementById('albumHeroProgress').textContent = '已学 ' + learnedCount + '/' + album.poems.length;
+  selectedPoemIdx = -1;
+  renderPoemList(album);
+  goTo('album');
+}
+
+function renderPoemList(album) {
+  const list = document.getElementById('poemList');
+  list.innerHTML = album.poems.map((p, i) => {
+    const hasScript = !!POEM_DATA[p.title];
+    const noScriptClass = hasScript ? '' : ' no-script';
+    const clickHandler = hasScript
+      ? `onclick="selectPoem(${i})"`
+      : `onclick="showNoScriptToast('${p.title}')"`;
+    const noScriptTag = hasScript ? '' : '<span style="font-size:9px;color:#bbb;background:#ece9e4;padding:1px 6px;border-radius:5px;flex-shrink:0;margin-left:auto">暂无讲解</span>';
+    const learnedTag = (p.learned && hasScript) ? '<span style="font-size:10px;color:#2D5A4A;background:#e6f4ee;padding:2px 7px;border-radius:6px;white-space:nowrap;flex-shrink:0;margin-left:auto">已学</span>' : '';
+    const checkMark = (selectedPoemIdx === i && hasScript) ? '<span style="color:#C85C38;font-size:14px;flex-shrink:0;margin-left:4px">✓</span>' : '';
+    return `
+    <button class="poem-item${selectedPoemIdx === i ? ' selected' : ''}${noScriptClass}" ${clickHandler}>
+      <div class="poem-num">${i + 1}</div>
+      <div class="poem-info">
+        <div class="poem-name">${p.title}</div>
+        <div class="poem-author">${p.author}</div>
+      </div>
+      ${learnedTag}${noScriptTag}${checkMark}
+    </button>`;
+  }).join('');
+}
+
+function showNoScriptToast(title) {
+  const existing = document.getElementById('noScriptToast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'noScriptToast';
+  toast.textContent = '《' + title + '》暂时还没有讲解资源，敬请期待';
+  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2C1810;color:#fff;font-size:12px;padding:9px 18px;border-radius:20px;z-index:9999;pointer-events:none;opacity:1;transition:opacity 0.4s;white-space:nowrap;font-family:\'Noto Sans SC\',sans-serif';
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 2200);
+}
+
+function selectPoem(idx) {
+  selectedPoemIdx = selectedPoemIdx === idx ? -1 : idx;
+  renderPoemList(ALBUMS[currentAlbumId]);
+}
+
+// ===== LOOP =====
+function applyLoop() {
+  const m = LOOP_MODES[loopIdx];
+  document.getElementById('loopIcon').textContent = m.icon;
+  document.getElementById('loopLabel').textContent = m.label;
+  document.getElementById('loopSettingSubText').textContent = '当前：' + m.label;
+  // sync all loop option buttons
+  ['loopOpt','loopOptA'].forEach(prefix => {
+    LOOP_MODES.forEach((_, i) => {
+      const btn = document.getElementById(prefix + i);
+      if (btn) btn.classList.toggle('active', i === loopIdx);
+    });
+  });
+}
+
+let pendingLoopIdx = 0;
+function showLoopModal() {
+  pendingLoopIdx = loopIdx;
+  // sync all loop option buttons (settings + album)
+  ['loopOpt','loopOptA'].forEach(prefix => {
+    LOOP_MODES.forEach((_, i) => {
+      const btn = document.getElementById(prefix + i);
+      if (btn) btn.classList.toggle('active', i === loopIdx);
+    });
+  });
+  // show the modal that's inside the visible screen
+  const activeScreen = document.querySelector('.app-screen:not(.hidden)');
+  const modalId = activeScreen && activeScreen.id === 'screen-album' ? 'loopModalAlbum' : 'loopModal';
+  document.getElementById(modalId).classList.add('visible');
+}
+function hideLoopModal() {
+  document.getElementById('loopModal').classList.remove('visible');
+  document.getElementById('loopModalAlbum').classList.remove('visible');
+}
+function pickLoop(idx) {
+  pendingLoopIdx = idx;
+  LOOP_MODES.forEach((_, i) => {
+    document.getElementById('loopOpt' + i).classList.toggle('active', i === idx);
+  });
+}
+function confirmLoop() {
+  loopIdx = pendingLoopIdx;
+  applyLoop();
+  hideLoopModal();
+}
+
+// ===== TIMER =====
+function showTimerModal() { document.getElementById('timerModal').classList.add('visible'); }
+function hideTimerModal() {
+  timerTime = null;
+  document.getElementById('timerSettingSubText').textContent = '未设置';
+  document.getElementById('timerModal').classList.remove('visible');
+}
+function confirmTimer() {
+  const h = document.getElementById('timerHour').value;
+  const m = document.getElementById('timerMin').value;
+  timerTime = h + ':' + m;
+  document.getElementById('timerSettingSubText').textContent = '每天 ' + timerTime + ' 自动播放';
+  document.getElementById('timerModal').classList.remove('visible');
+}
+
+// ===== GOAL MODAL =====
+function showGoalModal() { document.getElementById('goalModal').classList.add('visible'); }
+function hideGoalModal() { document.getElementById('goalModal').classList.remove('visible'); }
+function selectGoal(el, name) {
+  document.querySelectorAll('.goal-item').forEach(g => g.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedGoalEl = name;
+}
+
+function confirmPush() {
+  hideGoalModal();
+  const album = ALBUMS[currentAlbumId];
+  const poem = selectedPoemIdx >= 0 ? album.poems[selectedPoemIdx] : album.poems[0];
+  const goal = selectedGoalEl || '日常熏听';
+  const title = poem.title + ' — ' + poem.author;
+  const text = poem.text;
+  const albumAge = album.age[album.age.length - 1]; // 取最高年龄段作为讲解层级依据
+  pendingTask = { title, text, goal, albumTitle: album.title, age: albumAge };
+  currentScript = { title, text, goal, albumTitle: album.title, age: albumAge };
+  if (autoPlayOn) {
+    triggerSpeaker(goal + ' · ' + album.title, title, text, albumAge);
+  } else {
+    showPushedNotice(goal, album.title, title);
+  }
+}
+
+function showPushedNotice(goal, albumTitle, poemTitle) {
+  const nowTitle = document.getElementById('nowTitle');
+  const nowSub = document.getElementById('nowSub');
+  const nowPoem = document.getElementById('nowPoem');
+  const stopBtn = document.getElementById('stopBtn');
+  nowTitle.textContent = poemTitle;
+  nowTitle.classList.add('visible');
+  nowSub.textContent = '已推送 · ' + goal + ' · 等待播放';
+  nowSub.classList.add('visible');
+  nowPoem.textContent = '自动播放未开启，任务已记录。\n开启自动播放后将立即响应。';
+  nowPoem.classList.add('visible');
+  stopBtn.classList.remove('visible');
+  document.getElementById('scriptBtn').classList.add('visible');
+}
+
+// ===== AUTO PLAY TOGGLE =====
+function toggleAutoPlay(btn) {
+  autoPlayOn = !autoPlayOn;
+  btn.classList.toggle('on', autoPlayOn);
+  if (autoPlayOn && pendingTask) {
+    triggerSpeaker(
+      (pendingTask.goal || '日常熏听') + ' · ' + pendingTask.albumTitle,
+      pendingTask.title,
+      pendingTask.text,
+      pendingTask.age
+    );
+  }
+}
+
+// ===== SPEAKER PLAY =====
+function triggerSpeaker(mode, title, poemText, age) {
+  stopSpeaker();
+  currentScript = currentScript || { title, text: poemText, goal: mode, albumTitle: '', age };
+  if (age) currentScript.age = age;
+  document.getElementById('speakerWrapper').classList.add('speaker-playing');
+  document.getElementById('screenBg').classList.add('active');
+  document.getElementById('speakerStatus').textContent = '播放中';
+  document.getElementById('speakerStatus').classList.add('playing');
+  document.getElementById('waveBars').classList.add('visible');
+
+  document.getElementById('nowTitle').textContent = title;
+  document.getElementById('nowTitle').classList.add('visible');
+  document.getElementById('nowSub').textContent = mode;
+  document.getElementById('nowSub').classList.add('visible');
+  document.getElementById('nowPoem').textContent = poemText;
+  document.getElementById('nowPoem').classList.add('visible');
+  document.getElementById('stopBtn').classList.add('visible');
+  document.getElementById('scriptBtn').classList.add('visible');
+
+  isSpeaking = true;
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+
+  const poemTitle = title.split(' — ')[0];
+  const level = getLevel(age);
+  const data = POEM_DATA[poemTitle];
+  const lv = data ? data[level] : null;
+  const showBackground = (level === 'L2' || level === 'L3');
+
+  const segments = [];
+
+  // 根据年龄段定称呼
+  const kidCall = level === 'L1' ? '小朋友' : level === 'L2' ? '小朋友' : '同学';
+
+  // ① 开场：柔和引入
+  const openLine = level === 'L1'
+    ? kidCall + '，今天我们来学一首古诗，叫《' + poemTitle + '》，听我来读给你听哦！'
+    : kidCall + '，今天我们一起来学一首诗，叫《' + poemTitle + '》，作者是' + (data ? data.author : '') + '。先来听我读一遍吧！';
+  segments.push({ text: openLine, rate: 0.88, pitch: 1.05 });
+
+  // ② 原文朗读
+  segments.push({ text: poemText, rate: 0.65, pitch: 1.05 });
+
+  if (lv) {
+    // ③ 朝代背景衔接语（仅L2/L3）
+    if (showBackground && data) {
+      const bgIntro = level === 'L3'
+        ? '好，接下来我们来了解一下背景。' + data.author + '是' + data.dynasty + '的诗人，这首诗背后有个值得了解的故事。'
+        : '读完了，接下来我们来了解一下这首诗的朝代背景吧。这首诗的作者是' + data.author + '，生活在' + data.dynasty + '，是个非常有名的诗人。';
+      segments.push({ text: bgIntro, rate: 0.87, pitch: 1.0 });
+    }
+    // ④ 大意衔接
+    const introConnector = showBackground
+      ? '了解了背景，我们再来看看这首诗在说什么。'
+      : '读完了这首诗，我们来聊聊它在说什么吧！';
+    segments.push({ text: introConnector + lv.intro, rate: 0.88, pitch: 1.0 });
+    // ⑤ 关键词衔接
+    segments.push({ text: '我们来看看里面几个重要的词。' + lv.keyword, rate: 0.86, pitch: 1.0 });
+    // ⑥ 联系生活衔接
+    segments.push({ text: '说到这里，我们联系一下生活。' + lv.life, rate: 0.88, pitch: 1.0 });
+    // ⑦ 回到原诗衔接
+    segments.push({ text: '好啦，我们再回到这首诗，一起听一遍结尾：' + lv.back, rate: 0.82, pitch: 1.05 });
+  }
+
+  // ⑧ 互动引导衔接语
+  const qaLeadIn = level === 'L1'
+    ? '这首诗我们就讲到这里啦！小朋友，你有没有想问的问题呀？'
+    : level === 'L2'
+    ? '好，《' + poemTitle + '》我们就讲到这里。你有什么想问的吗？或者想跟诗人聊聊？'
+    : '今天的讲解先到这里。同学，你有什么想深入了解的，尽管问我哦。';
+  const qaPromptText = (data && data.interact) ? data.interact.qa : qaLeadIn;
+  segments.push({
+    text: qaLeadIn,
+    rate: 0.88, pitch: 1.0,
+    onEnd: () => showQAPanel(poemTitle, level, mode)
+  });
+
+  // 链式播放
+  let segIdx = 0;
+  function playNext() {
+    if (!isSpeaking || segIdx >= segments.length) {
+      // 全部播完，进入等待互动状态
+      if (isSpeaking) {
+        isSpeaking = false;
+        document.getElementById('speakerWrapper').classList.remove('speaker-playing');
+        document.getElementById('screenBg').classList.remove('active');
+        document.getElementById('speakerStatus').textContent = '等待互动';
+        document.getElementById('speakerStatus').classList.remove('playing');
+        document.getElementById('waveBars').classList.remove('visible');
+        document.getElementById('stopBtn').classList.remove('visible');
+      }
+      return;
+    }
+    const seg = segments[segIdx++];
+    const utt = new SpeechSynthesisUtterance(seg.text);
+    utt.lang = 'zh-CN';
+    utt.rate = seg.rate;
+    utt.pitch = seg.pitch;
+    const v = getChineseVoice();
+    if (v) utt.voice = v;
+    utt.onend = () => { if (seg.onEnd) seg.onEnd(); playNext(); };
+    utt.onerror = playNext;
+    window.speechSynthesis.speak(utt);
+  }
+  playNext();
+}
+
+function stopSpeaker() {
+  isSpeaking = false;
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  document.getElementById('speakerWrapper').classList.remove('speaker-playing');
+  document.getElementById('screenBg').classList.remove('active');
+  document.getElementById('speakerStatus').textContent = '小度小度';
+  document.getElementById('speakerStatus').classList.remove('playing');
+  document.getElementById('waveBars').classList.remove('visible');
+  ['nowTitle','nowSub','nowPoem','stopBtn','scriptBtn'].forEach(id => {
+    document.getElementById(id).classList.remove('visible');
+  });
+  document.getElementById('qaPanel').classList.remove('visible');
+  document.getElementById('qaHistory').innerHTML = '';
+  document.getElementById('qaMicStatus').textContent = '';
+  stopMic();
+  document.getElementById('qaInput').value = '';
+}
+
+// ===== Q&A 互动 =====
+let qaContext = { poemTitle: '', level: '', goal: '', turns: 0, mode: 'normal' };
+// mode: 'normal' = 音箱助手语气；'poet' = 诗人人设语气（单轮，回答后自动恢复）
+
+// ===== 诗人人设数据 =====
+const POET_PERSONA = {
+  '孟浩然': {
+    style: 'gentle', // 温和隐士
+    greeting: '哦，小友有礼了。老夫孟浩然，山林间人，最爱春日闲眠。',
+    responses: {
+      default: (q, lv) => `嗯……${lv.life} 老夫写此诗，便是这般心境。`,
+      sleep:    '哈哈，那日春风和暖，老夫睡得实在香甜，待鸟鸣声一起，才知已是天明，心中不免念起那满地落花……',
+      rain:     '夜里风雨确是不小，老夫辗转听了一夜，晨起才想——也不知花落了多少啊。',
+    }
+  },
+  '贺知章': {
+    style: 'lively',
+    greeting: '哈哈！小友来访，老夫贺知章，字季真，最爱那一树碧柳！',
+    responses: {
+      default: (q, lv) => `好问题！${lv.life} 这便是老夫写此诗的妙处所在。`,
+      wind:    '春风啊，看不见、摸不着，但裁出这许多细叶，岂非神来之手？老夫一见，便想到剪刀！',
+    }
+  },
+  '杜甫': {
+    style: 'sincere',
+    greeting: '小友，老夫杜甫，子美。草堂虽陋，那日春色却好，便随手写了下来。',
+    responses: {
+      default: (q, lv) => `唉，那年老夫旅居成都，虽身处困苦，${lv.life} 看这景致，心中稍安。`,
+    }
+  },
+  '李白': {
+    style: 'bold',
+    greeting: '哈哈哈！吾乃李太白！小友有问，但说无妨，吾最爱畅谈！',
+    responses: {
+      default: (q, lv) => `哈，${lv.life} 吾心中所感，便如江水，万里奔腾，岂止笔墨！`,
+      big:     '三千尺？哈哈，夸张了些，但那瀑布气势，真叫吾心旷神怡，不夸大些，如何表达？',
+      moon:    '那夜月光如霜，吾半梦半醒，抬头一望，乡愁便涌上心头……故乡，不知何日再见。',
+      fast:    '那日获赦，吾高兴得心都飞起来了！坐上小船，只觉两岸猿声还没听完，就已万山尽过——哈哈哈！',
+    }
+  },
+  '柳宗元': {
+    style: 'melancholy',
+    greeting: '……小友来了。吾是柳宗元，子厚。被贬永州，见此江雪，心有所感。',
+    responses: {
+      default: (q, lv) => `那老翁……或许，便是吾自己。${lv.life} 即便天地皆寒，也要独守此心。`,
+    }
+  },
+  '王安石': {
+    style: 'resolute',
+    greeting: '小友，吾王安石，介甫。新年新气象，正合吾心中所愿。',
+    responses: {
+      default: (q, lv) => `爆竹声中，旧的已去，新的来临。${lv.life} 吾所愿，亦不过如此。`,
+    }
+  },
+  '苏轼': {
+    style: 'open',
+    greeting: '哈，小友！吾苏轼，子瞻，号东坡。那夜中秋，弟弟不在身侧，吾一人对月，感慨颇多。',
+    responses: {
+      default: (q, lv) => `${lv.life} 吾想啊，人生不如意十之八九，不如与月共饮，洒脱些吧。`,
+      cold:    '月宫高处不胜寒——吾也是想象，若真能飞上去，只怕那孤清，比人间更难受。还是人间好，热热闹闹的。',
+    }
+  },
+  '张九龄': {
+    style: 'elegant',
+    greeting: '小友有礼。吾张九龄，子寿。那夜海上，月从水中升起，远方的人此刻可也在望月？',
+    responses: {
+      default: (q, lv) => `是啊。${lv.life} 月亮，是天下人共有的，吾借它，寄一份思念而已。`,
+    }
+  },
+};
+
+// 诗人语气朗读参数
+const POET_VOICE_PARAMS = {
+  gentle:    { rate: 0.78, pitch: 0.90 },
+  lively:    { rate: 0.88, pitch: 1.10 },
+  sincere:   { rate: 0.80, pitch: 0.88 },
+  bold:      { rate: 0.92, pitch: 1.15 },
+  melancholy:{ rate: 0.72, pitch: 0.82 },
+  resolute:  { rate: 0.82, pitch: 0.92 },
+  open:      { rate: 0.90, pitch: 1.08 },
+  elegant:   { rate: 0.78, pitch: 0.95 },
+};
+
+// 获取诗人音色（尽量找男声/低沉声）
+function getPoetVoice(style) {
+  const voices = window.speechSynthesis.getVoices();
+  // 尝试找中文男声
+  const male = voices.find(v =>
+    (v.lang === 'zh-CN' || v.lang === 'zh_CN') &&
+    /yun|云|male|man|ming|jun|long|lei|康|jun|gang/i.test(v.name)
+  );
+  if (male) return male;
+  // Edge: Microsoft Yunxi 是男声
+  const yunxi = voices.find(v => /yunxi|云希/i.test(v.name));
+  if (yunxi) return yunxi;
+  // 找任何非 xiaoxiao/xiaoyi 的 zh-CN 声音
+  const other = voices.find(v =>
+    (v.lang === 'zh-CN' || v.lang === 'zh_CN') &&
+    !/xiaoxiao|xiaoyi|小晓|晓伊/i.test(v.name)
+  );
+  if (other) return other;
+  return getChineseVoice();
+}
+
+// 播报诗人语气文本
+function speakAsPoet(text, author, onDone) {
+  if (!('speechSynthesis' in window)) { if (onDone) onDone(); return; }
+  const persona = POET_PERSONA[author];
+  const style = persona ? persona.style : 'sincere';
+  const params = POET_VOICE_PARAMS[style] || { rate: 0.80, pitch: 0.92 };
+
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'zh-CN';
+  utt.rate = params.rate;
+  utt.pitch = params.pitch;
+  const v = getPoetVoice(style);
+  if (v) utt.voice = v;
+  if (onDone) { utt.onend = onDone; utt.onerror = onDone; }
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utt);
+}
+
+// 判断是否是触发"跟诗人聊"的输入
+function isPoetTrigger(q) {
+  return /跟诗人|和诗人|问诗人|诗人说|诗人聊|跟作者|问作者|作者聊|你是诗人|穿越|诗人你好|你好诗人/.test(q);
+}
+
+// 生成诗人风格回答
+function getPoetAnswer(poemTitle, question, level) {
+  const data = POEM_DATA[poemTitle];
+  const lv = data ? data[level] : null;
+  const author = data ? data.author : '';
+  const persona = POET_PERSONA[author];
+  if (!persona || !lv) {
+    return `吾乃${author}。小友所问，答曰：${lv ? lv.intro : '此诗乃吾心声，望君细细品味。'}`;
+  }
+
+  const q = question;
+  const res = persona.responses;
+
+  // 匹配关键词回特定答案
+  if (res.sleep && /睡|觉|梦/.test(q)) return res.sleep;
+  if (res.rain && /雨|风雨/.test(q)) return res.rain;
+  if (res.wind && /风|剪刀|裁/.test(q)) return res.wind;
+  if (res.big && /三千|多高|夸张/.test(q)) return res.big;
+  if (res.moon && /月|故乡|想家/.test(q)) return res.moon;
+  if (res.fast && /快|开心|高兴|船/.test(q)) return res.fast;
+  if (res.cold && /寒|冷|月宫/.test(q)) return res.cold;
+
+  // 通用诗人回答
+  return typeof res.default === 'function' ? res.default(q, lv) : res.default;
+}
+
+// 预置问答库（基于 POEM_DATA 的分龄内容生成回答）
+function getQAAnswer(poemTitle, question) {
+  const data = POEM_DATA[poemTitle];
+  const level = qaContext.level;
+  const lv = data ? data[level] : null;
+  if (!data || !lv) return '这是一首很美的古诗，你可以多读几遍，慢慢体会。';
+
+  const q = question.trim();
+
+  // 意思类
+  if (/意思|说什么|讲什么|啥意思|什么意思/.test(q)) {
+    return lv.intro;
+  }
+  // 作者类
+  if (/作者|谁写|诗人|什么人/.test(q)) {
+    if (level === 'L1') return '这首诗是' + data.author + '写的，他是一个很喜欢写诗的人。';
+    return '这首诗的作者是' + data.author + '，' + data.dynasty + '时候的诗人。' + lv.intro;
+  }
+  // 关键词类
+  if (/关键词|重要的字|哪个字|词是什么/.test(q)) {
+    return lv.keyword;
+  }
+  // 为什么这样写
+  if (/为什么|怎么写|这样写/.test(q)) {
+    if (level === 'L1') return '因为这样听起来很美，也很像画面，让小朋友更容易记住。';
+    return lv.life;
+  }
+  // 生活联系
+  if (/生活|例子|像什么|比喻/.test(q)) {
+    return lv.life;
+  }
+  // 回到原诗
+  if (/再读|再来一遍|原诗|读一遍/.test(q)) {
+    speakText(lv.back, 0.7);
+    return '好，我们再来听一遍：' + lv.back;
+  }
+
+  // 逐句解释（按诗句关键字匹配）
+  const exp = POEM_EXPLANATIONS[poemTitle] || '';
+  if (exp) {
+    const lines = exp.split('\n');
+    for (const line of lines) {
+      const keyword = line.split('——')[0];
+      if (keyword && q.includes(keyword.trim())) {
+        return line.replace('——', '，就是说：');
+      }
+    }
+  }
+
+  // 通用兜底
+  return lv.intro + ' ' + lv.life;
+}
+
+function speakText(text, rate, onDone) {
+  if (!('speechSynthesis' in window)) { if (onDone) onDone(); return; }
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'zh-CN';
+  utt.rate = rate || 0.85;
+  utt.pitch = 1.05;
+  const v = getChineseVoice();
+  if (v) utt.voice = v;
+  if (onDone) { utt.onend = onDone; utt.onerror = onDone; }
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utt);
+}
+
+function showQAPanel(poemTitle, level, goal) {
+  qaContext = { poemTitle, level, goal: goal || '', turns: 0, mode: 'normal' };
+  const data = POEM_DATA[poemTitle];
+  const panel = document.getElementById('qaPanel');
+  const prompt = document.getElementById('qaPrompt');
+  const suggest = document.getElementById('qaSuggest');
+
+  // 清空历史
+  document.getElementById('qaHistory').innerHTML = '';
+  document.getElementById('qaMicStatus').textContent = '';
+
+  prompt.textContent = data && data.interact ? data.interact.qa : '你有什么想问的吗？';
+
+  const author = data ? data.author : '';
+  const suggestions = [
+    '这首诗是什么意思？',
+    '为什么这样写？',
+    '关键词是什么？',
+    author ? `我想跟${author}聊聊` : '跟诗人聊聊',
+  ];
+  suggest.innerHTML = suggestions.map(s =>
+    `<button class="qa-suggest-chip" onclick="fillAndSend('${s}')">${s}</button>`
+  ).join('');
+
+  panel.classList.add('visible');
+
+  // 讲解结束自动打开麦克风
+  setTimeout(() => startMic(true), 600);
+}
+
+function fillAndSend(text) {
+  document.getElementById('qaInput').value = text;
+  sendQA();
+}
+
+function sendQA() {
+  const input = document.getElementById('qaInput');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  stopMic();
+  processUserInput(q);
+}
+
+function processUserInput(q) {
+  qaContext.turns = (qaContext.turns || 0) + 1;
+  addBubble('user', q);
+
+  const data = POEM_DATA[qaContext.poemTitle];
+  const author = data ? data.author : '';
+
+  // 判断是否触发诗人人设
+  const poetMode = isPoetTrigger(q);
+
+  if (poetMode) {
+    // ===== 诗人模式 =====
+    qaContext.mode = 'poet';
+    const persona = POET_PERSONA[author];
+
+    // 第一句：以诗人身份打招呼
+    const greeting = persona ? persona.greeting : `吾乃${author}，小友有礼了。`;
+    const poetAnswer = getPoetAnswer(qaContext.poemTitle, q, qaContext.level);
+    const fullReply = greeting + poetAnswer;
+
+    // 加一个诗人标签气泡
+    const poetLabel = author ? `【${author}】` : '【诗人】';
+    addBubble('ai', poetLabel + ' ' + fullReply);
+
+    speakAsPoet(fullReply, author, () => {
+      // 诗人回答完毕，提示恢复
+      const backMsg = '（诗人走远了……有什么还想问音箱吗？）';
+      qaContext.mode = 'normal';
+      addBubble('ai', backMsg);
+      speakText(backMsg, 0.88, () => {
+        setTimeout(() => startMic(false), 400);
+      });
+    });
+
+  } else {
+    // ===== 普通答疑模式 =====
+    qaContext.mode = 'normal';
+    const answer = getQAAnswer(qaContext.poemTitle, q);
+    addBubble('ai', answer);
+
+    const needRecite = qaContext.goal === '课内同步' || qaContext.goal === '背诵积累';
+    const maxTurns = qaContext.goal === '背诵积累' ? 3 : 5;
+
+    speakText(answer, 0.85, () => {
+      if (qaContext.turns < maxTurns) {
+        setTimeout(() => startMic(false), 400);
+      } else if (needRecite) {
+        startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
+      } else {
+        const closeMsg = getAgeClosingLine(qaContext.level);
+        addBubble('ai', closeMsg);
+        speakText(closeMsg, 0.88);
+      }
+    });
+  }
+}
+
+function getAgeClosingLine(level) {
+  if (level === 'L1') return '今天学了好多！有空再来找我玩哦！';
+  if (level === 'L2') return '你问了很多好问题！下次我们可以继续聊。';
+  return '今天的探讨很有深度，下次我们可以聊聊这首诗的更多故事。';
+}
+
+// ===== 背诵系统 =====
+// 阶段：0=听熟朗读, 1=整句提示, 2=关键字提示, 3=首字提示, 4=空白补全, 5=无提示挑战
+let reciteState = null;
+
+function splitPoem(text) {
+  // 按句号、问号、感叹号分句，保留标点
+  return text.match(/[^，。？！]+[，。？！]/g) || [text];
+}
+
+function maskLine(line, stage) {
+  // stage 1: 整句（不遮盖）
+  // stage 2: 遮盖后半句（保留前2字）
+  // stage 3: 只留首字，其余用__
+  // stage 4: 整句用____替代
+  const clean = line.replace(/[，。？！]/g, '');
+  if (stage === 1) return line;
+  if (stage === 2) {
+    const keep = Math.max(2, Math.ceil(clean.length * 0.4));
+    return clean.slice(0, keep) + '…'.repeat(clean.length - keep) + line.slice(-1);
+  }
+  if (stage === 3) {
+    return clean[0] + '＿'.repeat(clean.length - 1) + line.slice(-1);
+  }
+  // stage 4+: 全空
+  return '＿'.repeat(clean.length) + line.slice(-1);
+}
+
+function buildRecitePrompt(lines, stage, currentLine) {
+  // 显示已过的行（不遮），当前行按阶段遮盖，未来行全遮
+  return lines.map((l, i) => {
+    if (i < currentLine) return l;
+    if (i === currentLine) return maskLine(l, stage);
+    return maskLine(l, 4);
+  }).join('\n');
+}
+
+function startReciteSession(poemTitle, level, goal) {
+  const data = POEM_DATA[poemTitle];
+  if (!data) return;
+
+  const poemText = currentScript ? currentScript.text : '';
+  const lines = splitPoem(poemText);
+
+  reciteState = {
+    poemTitle,
+    level,
+    goal,
+    lines,
+    stage: 0,      // 当前阶段 0-5
+    lineIdx: 0,    // 当前练习到第几句
+    mistakes: 0
+  };
+
+  stopMic();
+  document.getElementById('qaPanel').classList.add('visible');
+
+  const intro = level === 'L1'
+    ? '讲解完啦！接下来我们来试试一起读这首诗，别着急，跟着我一句一句来～'
+    : goal === '背诵积累'
+    ? '讲解完啦！接下来我们来试试背一背这首诗，别担心，我们一步一步慢慢来～'
+    : '好啦，接下来我们来轻松地背一背这首诗，你不用担心，我会一直在旁边帮你！';
+
+  addBubble('ai', intro);
+  speakText(intro, 0.88, () => setTimeout(runReciteStage, 500));
+}
+
+function runReciteStage() {
+  if (!reciteState) return;
+  const { lines, stage, lineIdx, level, goal } = reciteState;
+
+  // 阶段0：先完整朗读一遍（听熟）
+  if (stage === 0) {
+    const msg = '没关系，我们先来听一遍，你可以跟着小声读～\n' + lines.join('\n');
+    addBubble('ai', msg);
+    speakText(lines.join('，'), 0.7, () => {
+      reciteState.stage = 1;
+      reciteState.lineIdx = 0;
+      setTimeout(runReciteStage, 800);
+    });
+    return;
+  }
+
+  // 阶段1-4：逐句提示
+  const stageNames = ['', '整句提示', '部分提示', '首字提示', '完全空白'];
+  const stageName = stageNames[stage] || '挑战';
+
+  if (lineIdx >= lines.length) {
+    // 这一阶段全部完成
+    if (stage < 4) {
+      const encouragement = reciteState.mistakes === 0
+        ? ['太棒了！', '很好！', '做得不错！'][Math.floor(Math.random()*3)]
+        : '继续加油！';
+      const nextMsg = stage === 1
+        ? encouragement + ' 这次我只给你一点点提示，后半句你来想想看～'
+        : stage === 2
+        ? encouragement + ' 做得真好！这次我只给你每句的第一个字，其他的你来试试～'
+        : stage === 3
+        ? encouragement + ' 太棒啦！现在我们试试完全不看提示，你能把这首诗背出来吗？加油！'
+        : '';
+      addBubble('ai', nextMsg);
+      speakText(nextMsg, 0.88, () => {
+        reciteState.stage++;
+        reciteState.lineIdx = 0;
+        reciteState.mistakes = 0;
+        setTimeout(runReciteStage, 600);
+      });
+    } else {
+      // 全部阶段完成
+      finishRecite();
+    }
+    return;
+  }
+
+  // 显示当前行的提示
+  const hint = buildRecitePrompt(lines, stage, lineIdx);
+  const promptText = stage === 1
+    ? '跟着我读：\n' + hint
+    : stage === 2
+    ? '试着补全后面的部分：\n' + hint
+    : stage === 3
+    ? '只给你第一个字，其他你来想：\n' + hint
+    : '来，这次完全靠你！试着背出这一句：\n' + hint;
+
+  addBubble('ai', promptText);
+  speakText(
+    stage === 1 ? lines[lineIdx].replace(/[，。？！]/g,'') : promptText.split('\n')[0],
+    0.88,
+    () => {
+      // 打开麦克风听孩子背
+      setTimeout(() => startReciteMic(lines[lineIdx]), 400);
+    }
+  );
+}
+
+function startReciteMic(expectedLine) {
+  const clean = expectedLine.replace(/[，。？！\s]/g, '');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    // 无语音识别，直接前进
+    advanceReciteLine(true);
+    return;
+  }
+
+  const r = new SpeechRecognition();
+  r.lang = 'zh-CN'; r.continuous = false; r.interimResults = false;
+  document.getElementById('qaMicBtn').classList.add('listening');
+  document.getElementById('qaMicStatus').textContent = '请背出这一句…';
+
+  r.onresult = (e) => {
+    const said = e.results[0][0].transcript.replace(/[，。？！\s]/g, '');
+    const correct = said.includes(clean) || clean.includes(said) || similarity(said, clean) > 0.6;
+    evaluateReciteLine(said, clean, correct);
+  };
+  r.onerror = () => {
+    document.getElementById('qaMicBtn').classList.remove('listening');
+    document.getElementById('qaMicStatus').textContent = '';
+    advanceReciteLine(true); // 出错就跳过
+  };
+  r.onend = () => {
+    document.getElementById('qaMicBtn').classList.remove('listening');
+    document.getElementById('qaMicStatus').textContent = '';
+  };
+  r.start();
+}
+
+function similarity(a, b) {
+  if (!a || !b) return 0;
+  let matches = 0;
+  for (const ch of a) { if (b.includes(ch)) matches++; }
+  return matches / Math.max(a.length, b.length);
+}
+
+function evaluateReciteLine(said, expected, correct) {
+  const level = reciteState.level;
+  if (correct) {
+    const praise = level === 'L1'
+      ? ['好棒！', '读对啦！', '太厉害了！'][Math.floor(Math.random()*3)]
+      : ['正确！', '很好！', '答对了！'][Math.floor(Math.random()*3)];
+    addBubble('ai', praise);
+    speakText(praise, 1.0, () => {
+      advanceReciteLine(true);
+    });
+  } else {
+    reciteState.mistakes++;
+    const hint = reciteState.lines[reciteState.lineIdx];
+    const tipMsg = level === 'L1'
+      ? '没关系，跟我说：' + hint.replace(/[，。？！]/g,'')
+      : '再试一次，正确是：' + hint.replace(/[，。？！]/g,'');
+    addBubble('ai', tipMsg);
+    speakText(hint.replace(/[，。？！]/g,''), 0.75, () => {
+      // 给一次重试机会
+      setTimeout(() => startReciteMic(hint), 600);
+    });
+  }
+}
+
+function advanceReciteLine(ok) {
+  if (!reciteState) return;
+  reciteState.lineIdx++;
+  setTimeout(runReciteStage, 600);
+}
+
+function finishRecite() {
+  const level = reciteState.level;
+  const goal = reciteState.goal;
+  const title = reciteState.poemTitle;
+  const msg = level === 'L1'
+    ? '哇！你把《' + title + '》背完啦！真了不起！'
+    : goal === '背诵积累'
+    ? '恭喜！《' + title + '》完整背诵成功！继续积累，你会越来越厉害的！'
+    : '太好了！《' + title + '》你已经能背出来了，明天再复习一遍就彻底记住了！';
+
+  addBubble('ai', msg);
+  speakText(msg, 0.88);
+  reciteState = null;
+}
+
+function addBubble(type, text) {
+  const history = document.getElementById('qaHistory');
+  const div = document.createElement('div');
+  div.className = 'qa-bubble ' + type;
+  div.textContent = text;
+  history.appendChild(div);
+  history.scrollTop = history.scrollHeight;
+}
+
+// ===== 语音识别 =====
+let micRecognition = null;
+let micActive = false;
+
+function toggleMic() {
+  if (micActive) stopMic();
+  else startMic(false);
+}
+
+function startMic(auto) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    document.getElementById('qaMicStatus').textContent = '浏览器不支持语音识别，请文字输入';
+    return;
+  }
+  if (micActive) return;
+
+  micRecognition = new SpeechRecognition();
+  micRecognition.lang = 'zh-CN';
+  micRecognition.continuous = false;
+  micRecognition.interimResults = true;
+
+  micRecognition.onstart = () => {
+    micActive = true;
+    document.getElementById('qaMicBtn').classList.add('listening');
+    document.getElementById('qaMicStatus').textContent = auto ? '正在听…（你有什么想说的？）' : '正在听…';
+  };
+
+  micRecognition.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    if (interim) {
+      document.getElementById('qaInput').value = interim;
+      document.getElementById('qaMicStatus').textContent = '识别中：' + interim;
+    }
+    if (final) {
+      document.getElementById('qaInput').value = final;
+      document.getElementById('qaMicStatus').textContent = '';
+    }
+  };
+
+  micRecognition.onend = () => {
+    micActive = false;
+    document.getElementById('qaMicBtn').classList.remove('listening');
+    document.getElementById('qaMicStatus').textContent = '';
+    const val = document.getElementById('qaInput').value.trim();
+    if (val) sendQA();
+  };
+
+  micRecognition.onerror = (e) => {
+    micActive = false;
+    document.getElementById('qaMicBtn').classList.remove('listening');
+    const msg = e.error === 'not-allowed' ? '麦克风权限被拒绝，请在浏览器设置中允许' :
+                e.error === 'no-speech' ? '没听到声音，请再说一次' : '语音识别出错，请文字输入';
+    document.getElementById('qaMicStatus').textContent = msg;
+  };
+
+  micRecognition.start();
+}
+
+function stopMic() {
+  if (micRecognition && micActive) {
+    try { micRecognition.stop(); } catch(e) {}
+  }
+  micActive = false;
+  document.getElementById('qaMicBtn').classList.remove('listening');
+  document.getElementById('qaMicStatus').textContent = '';
+}
+
+// ===== INIT =====
+renderAlbumGrid();
+applyLoop();
+</script>
+</body>
+</html>
