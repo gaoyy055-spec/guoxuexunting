@@ -306,9 +306,17 @@
   }
   .now-playing-poem.visible { opacity: 1; }
 
-  .stop-btn {
+  .speaker-action-btns {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
     margin-top: 14px;
-    padding: 8px 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stop-btn {
+    padding: 8px 16px;
     border-radius: 20px;
     border: 1.5px solid var(--red);
     background: transparent;
@@ -323,8 +331,7 @@
   .stop-btn:hover { background: var(--red); color: #fff; }
 
   .interrupt-mic-btn {
-    margin-top: 8px;
-    padding: 8px 20px;
+    padding: 8px 16px;
     border-radius: 20px;
     border: 1.5px solid var(--brown-mid);
     background: transparent;
@@ -334,7 +341,6 @@
     opacity: 0;
     transition: opacity 0.3s, background 0.2s, border-color 0.2s, color 0.2s;
     font-family: 'Noto Sans SC', sans-serif;
-    display: block;
   }
   .interrupt-mic-btn.visible { opacity: 1; }
   .interrupt-mic-btn.listening {
@@ -346,8 +352,7 @@
   .interrupt-mic-btn:hover { background: var(--brown-light); }
 
   .script-btn {
-    margin-top: 8px;
-    padding: 8px 20px;
+    padding: 8px 16px;
     border-radius: 20px;
     border: 1.5px solid var(--brown-mid);
     background: transparent;
@@ -1283,9 +1288,11 @@
       <div class="now-playing-title" id="nowTitle"></div>
       <div class="now-playing-sub" id="nowSub"></div>
       <div class="now-playing-poem" id="nowPoem"></div>
+      <div class="speaker-action-btns">
       <button class="stop-btn" id="stopBtn" onclick="togglePlayPause()">■ 停止播放</button>
       <button class="interrupt-mic-btn" id="interruptMicBtn" onclick="interruptAndAsk()">🎙 打断提问</button>
       <button class="script-btn" id="scriptBtn" onclick="showScriptPanel()">📜 讲解内容</button>
+      </div>
       <!-- Interactive Q&A panel -->
       <div class="qa-panel" id="qaPanel">
         <div class="qa-prompt" id="qaPrompt"></div>
@@ -3119,12 +3126,15 @@ function _doStartMic() {
 
   micRecognition = new SpeechRecognition();
   micRecognition.lang = 'zh-CN';
-  micRecognition.continuous = false;      // Edge 兼容：false + 手动重启
+  micRecognition.continuous = false;
   micRecognition.interimResults = true;
   micRecognition.maxAlternatives = 1;
 
+  let gotResult = false;
+
   micRecognition.onstart = () => {
     micActive = true;
+    gotResult = false;
     document.getElementById('qaMicBtn').classList.add('listening');
     document.getElementById('qaMicStatus').textContent = '正在听，请说话…';
   };
@@ -3136,10 +3146,12 @@ function _doStartMic() {
       else interim += e.results[i][0].transcript;
     }
     if (interim) {
+      gotResult = true;
       document.getElementById('qaInput').value = interim;
       document.getElementById('qaMicStatus').textContent = '识别中：' + interim;
     }
     if (final) {
+      gotResult = true;
       document.getElementById('qaInput').value = final;
       micShouldRestart = false;
       document.getElementById('qaMicStatus').textContent = '✓ 发送中…';
@@ -3153,9 +3165,10 @@ function _doStartMic() {
     if (val) {
       document.getElementById('qaMicStatus').textContent = '';
       sendQA();
-    } else if (micShouldRestart) {
+    } else if (!gotResult && micShouldRestart) {
+      // Edge 立即关闭通常是权限问题，给出明确提示
       document.getElementById('qaMicStatus').textContent = '没听到，请继续说…';
-      setTimeout(_doStartMic, 300);
+      setTimeout(_doStartMic, 400);
     } else {
       document.getElementById('qaMicStatus').textContent = '';
     }
@@ -3163,12 +3176,15 @@ function _doStartMic() {
 
   micRecognition.onerror = (e) => {
     micActive = false;
+    gotResult = false;
     document.getElementById('qaMicBtn').classList.remove('listening');
     if (e.error === 'not-allowed') {
       micShouldRestart = false;
-      document.getElementById('qaMicStatus').textContent = '请点击地址栏🔒允许麦克风权限';
-    } else if (e.error === 'no-speech' || e.error === 'aborted') {
-      // onend 会处理重启
+      document.getElementById('qaMicStatus').textContent = '⚠️ 需要麦克风权限：点地址栏左侧🔒→网站权限→麦克风→允许';
+    } else if (e.error === 'no-speech') {
+      // onend 处理重启
+    } else if (e.error === 'aborted') {
+      // 主动中止
     } else {
       document.getElementById('qaMicStatus').textContent = '出错(' + e.error + ')，请重试';
       micShouldRestart = false;
@@ -3177,8 +3193,8 @@ function _doStartMic() {
 
   try {
     micRecognition.start();
-  } catch(e) {
-    document.getElementById('qaMicStatus').textContent = '麦克风启动失败，请重试';
+  } catch(err) {
+    document.getElementById('qaMicStatus').textContent = '启动失败，请刷新页面后重试';
     micActive = false;
     micShouldRestart = false;
   }
