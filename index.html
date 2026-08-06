@@ -322,6 +322,29 @@
   .stop-btn.visible { opacity: 1; }
   .stop-btn:hover { background: var(--red); color: #fff; }
 
+  .interrupt-mic-btn {
+    margin-top: 8px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1.5px solid var(--brown-mid);
+    background: transparent;
+    color: var(--brown-mid);
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s, background 0.2s, border-color 0.2s, color 0.2s;
+    font-family: 'Noto Sans SC', sans-serif;
+    display: block;
+  }
+  .interrupt-mic-btn.visible { opacity: 1; }
+  .interrupt-mic-btn.listening {
+    border-color: var(--red);
+    color: var(--red);
+    background: #fff0eb;
+    animation: micPulse 1s ease-in-out infinite;
+  }
+  .interrupt-mic-btn:hover { background: var(--brown-light); }
+
   .script-btn {
     margin-top: 8px;
     padding: 8px 20px;
@@ -1261,6 +1284,7 @@
       <div class="now-playing-sub" id="nowSub"></div>
       <div class="now-playing-poem" id="nowPoem"></div>
       <button class="stop-btn" id="stopBtn" onclick="togglePlayPause()">■ 停止播放</button>
+      <button class="interrupt-mic-btn" id="interruptMicBtn" onclick="interruptAndAsk()">🎙 打断提问</button>
       <button class="script-btn" id="scriptBtn" onclick="showScriptPanel()">📜 讲解内容</button>
       <!-- Interactive Q&A panel -->
       <div class="qa-panel" id="qaPanel">
@@ -2283,6 +2307,7 @@ function triggerSpeaker(mode, title, poemText, age) {
   document.getElementById('nowPoem').textContent = poemText;
   document.getElementById('nowPoem').classList.add('visible');
   document.getElementById('stopBtn').classList.add('visible');
+  document.getElementById('interruptMicBtn').classList.add('visible');
   document.getElementById('scriptBtn').classList.add('visible');
 
   isSpeaking = true;
@@ -2388,7 +2413,7 @@ function stopSpeaker() {
   document.getElementById('speakerStatus').textContent = '小度小度';
   document.getElementById('speakerStatus').classList.remove('playing');
   document.getElementById('waveBars').classList.remove('visible');
-  ['nowTitle','nowSub','nowPoem','stopBtn','scriptBtn'].forEach(id => {
+  ['nowTitle','nowSub','nowPoem','stopBtn','interruptMicBtn','scriptBtn'].forEach(id => {
     document.getElementById(id).classList.remove('visible');
   });
   document.getElementById('qaPanel').classList.remove('visible');
@@ -2396,6 +2421,54 @@ function stopSpeaker() {
   document.getElementById('qaMicStatus').textContent = '';
   stopMic();
   document.getElementById('qaInput').value = '';
+}
+
+// 打断播放并立即提问
+function interruptAndAsk() {
+  const btn = document.getElementById('interruptMicBtn');
+  const isListening = btn.classList.contains('listening');
+
+  if (isListening) {
+    // 再次点击取消打断
+    btn.classList.remove('listening');
+    btn.textContent = '🎙 打断提问';
+    stopMic();
+    return;
+  }
+
+  // 暂停播放
+  if (isSpeaking) {
+    window.speechSynthesis.cancel();
+    isSpeaking = false;
+    document.getElementById('speakerWrapper').classList.remove('speaker-playing');
+    document.getElementById('waveBars').classList.remove('visible');
+    document.getElementById('speakerStatus').textContent = '已暂停';
+    document.getElementById('speakerStatus').classList.remove('playing');
+    document.getElementById('stopBtn').textContent = '▶ 继续播放';
+  }
+
+  // 确保 QA 面板可见
+  const poemTitle = currentScript ? currentScript.title.split(' — ')[0] : '';
+  const level = currentScript ? getLevel(currentScript.age) : 'L1';
+  if (!document.getElementById('qaPanel').classList.contains('visible')) {
+    showQAPanel(poemTitle, level, currentScript ? currentScript.goal : '');
+  }
+
+  // 打开麦克风
+  btn.classList.add('listening');
+  btn.textContent = '🎙 正在听…';
+  micShouldRestart = true;
+  _doStartMic();
+
+  // 麦克风关闭后恢复按钮状态
+  const origOnend = micRecognition ? micRecognition.onend : null;
+  const checkBtn = setInterval(() => {
+    if (!micActive) {
+      btn.classList.remove('listening');
+      btn.textContent = '🎙 打断提问';
+      clearInterval(checkBtn);
+    }
+  }, 300);
 }
 
 // 暂停/继续用的状态
