@@ -1443,7 +1443,7 @@
             <div class="toggle-wrapper">
               <div class="setting-icon">🔔</div>
               <div style="flex:1"><div class="setting-name"><span class="setting-num">3</span>自动播放</div><div class="setting-sub">开启后推送点播立即响应，优先级高于定时</div></div>
-              <button class="toggle-btn" id="autoPlayToggle" onclick="toggleAutoPlay(this)">
+              <button class="toggle-btn on" id="autoPlayToggle" onclick="toggleAutoPlay(this)">
                 <div class="toggle-knob"></div>
               </button>
             </div>
@@ -1982,7 +1982,7 @@ const LOOP_MODES = [
 let loopIdx = 0;
 let isSpeaking = false;
 let pendingTask = null;    // {title, text} set when push is made
-let autoPlayOn = false;
+let autoPlayOn = true;
 let timerTime = null;      // '08:00' string or null
 
 // ===== 音色选择 =====
@@ -2944,6 +2944,12 @@ function startMic(auto) {
   }
   if (micActive) return;
 
+  // 自动触发时（auto=true），不直接开麦（需用户手势），只显示提示
+  if (auto) {
+    document.getElementById('qaMicStatus').textContent = '🎙 点击麦克风按钮说话';
+    return;
+  }
+
   micRecognition = new SpeechRecognition();
   micRecognition.lang = 'zh-CN';
   micRecognition.continuous = false;
@@ -2952,7 +2958,7 @@ function startMic(auto) {
   micRecognition.onstart = () => {
     micActive = true;
     document.getElementById('qaMicBtn').classList.add('listening');
-    document.getElementById('qaMicStatus').textContent = auto ? '正在听…（你有什么想说的？）' : '正在听…';
+    document.getElementById('qaMicStatus').textContent = '正在听…';
   };
 
   micRecognition.onresult = (e) => {
@@ -2982,12 +2988,20 @@ function startMic(auto) {
   micRecognition.onerror = (e) => {
     micActive = false;
     document.getElementById('qaMicBtn').classList.remove('listening');
-    const msg = e.error === 'not-allowed' ? '麦克风权限被拒绝，请在浏览器设置中允许' :
-                e.error === 'no-speech' ? '没听到声音，请再说一次' : '语音识别出错，请文字输入';
+    const msg = e.error === 'not-allowed'
+      ? '请在浏览器地址栏允许麦克风权限后重试'
+      : e.error === 'no-speech'
+      ? '没听到声音，请点麦克风再试'
+      : '语音识别出错（' + e.error + '），请文字输入';
     document.getElementById('qaMicStatus').textContent = msg;
   };
 
-  micRecognition.start();
+  try {
+    micRecognition.start();
+  } catch(e) {
+    document.getElementById('qaMicStatus').textContent = '麦克风启动失败，请点击重试';
+    micActive = false;
+  }
 }
 
 function stopMic() {
