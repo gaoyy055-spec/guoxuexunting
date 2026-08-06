@@ -2018,6 +2018,22 @@ if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = () => { selectedVoice = null; getChineseVoice(); };
 }
 
+// ===== Chrome TTS 保活 =====
+// Chrome bug: speechSynthesis 超过约15秒会静默卡死，需要每10秒 pause+resume 一次
+let ttsKeepAliveTimer = null;
+function startTTSKeepAlive() {
+  stopTTSKeepAlive();
+  ttsKeepAliveTimer = setInterval(() => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }
+  }, 10000);
+}
+function stopTTSKeepAlive() {
+  if (ttsKeepAliveTimer) { clearInterval(ttsKeepAliveTimer); ttsKeepAliveTimer = null; }
+}
+
 // Active filters
 let activeAge = '全部', activeGrade = '全部', activeTheme = '全部';
 
@@ -2270,6 +2286,7 @@ function triggerSpeaker(mode, title, poemText, age) {
   document.getElementById('scriptBtn').classList.add('visible');
 
   isSpeaking = true;
+  startTTSKeepAlive(); // 启动保活，防止 Chrome 静默卡死
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
 
@@ -2364,6 +2381,7 @@ function triggerSpeaker(mode, title, poemText, age) {
 function stopSpeaker() {
   isSpeaking = false;
   pausedSegments = null;
+  stopTTSKeepAlive();
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   document.getElementById('speakerWrapper').classList.remove('speaker-playing');
   document.getElementById('screenBg').classList.remove('active');
