@@ -2328,12 +2328,15 @@ function triggerSpeaker(mode, title, poemText, age) {
   });
 
   // 链式播放
+  pausedSegments = segments; // 保存 segments 供暂停/继续用
+  pausedSegIdx = 0;
   let segIdx = 0;
   function playNext() {
     if (!isSpeaking || segIdx >= segments.length) {
       // 全部播完，进入等待互动状态
       if (isSpeaking) {
         isSpeaking = false;
+        pausedSegments = null;
         document.getElementById('speakerWrapper').classList.remove('speaker-playing');
         document.getElementById('screenBg').classList.remove('active');
         document.getElementById('speakerStatus').textContent = '等待互动';
@@ -2343,6 +2346,7 @@ function triggerSpeaker(mode, title, poemText, age) {
       }
       return;
     }
+    pausedSegIdx = segIdx; // 每段开始前记录位置
     const seg = segments[segIdx++];
     const utt = new SpeechSynthesisUtterance(seg.text);
     utt.lang = 'zh-CN';
@@ -2359,6 +2363,7 @@ function triggerSpeaker(mode, title, poemText, age) {
 
 function stopSpeaker() {
   isSpeaking = false;
+  pausedSegments = null;
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   document.getElementById('speakerWrapper').classList.remove('speaker-playing');
   document.getElementById('screenBg').classList.remove('active');
@@ -2375,28 +2380,63 @@ function stopSpeaker() {
   document.getElementById('qaInput').value = '';
 }
 
+// 暂停/继续用的状态
+let pausedSegments = null;  // 暂停时保存剩余 segments
+let pausedSegIdx = 0;
+
 // 停止/继续播放切换
 function togglePlayPause() {
   const btn = document.getElementById('stopBtn');
   if (isSpeaking) {
-    // 暂停
-    if ('speechSynthesis' in window) window.speechSynthesis.pause();
+    // 暂停：取消TTS，记录当前进度
+    window.speechSynthesis.cancel();
     isSpeaking = false;
     document.getElementById('speakerWrapper').classList.remove('speaker-playing');
     document.getElementById('waveBars').classList.remove('visible');
     document.getElementById('speakerStatus').textContent = '已暂停';
     document.getElementById('speakerStatus').classList.remove('playing');
     btn.textContent = '▶ 继续播放';
-  } else if (window.speechSynthesis && window.speechSynthesis.paused) {
-    // 继续
-    window.speechSynthesis.resume();
+  } else if (pausedSegments && pausedSegIdx < pausedSegments.length) {
+    // 继续：从暂停的段重新播放
     isSpeaking = true;
     document.getElementById('speakerWrapper').classList.add('speaker-playing');
     document.getElementById('waveBars').classList.add('visible');
     document.getElementById('speakerStatus').textContent = '播放中';
     document.getElementById('speakerStatus').classList.add('playing');
     btn.textContent = '■ 停止播放';
+    resumeFromSegment(pausedSegments, pausedSegIdx);
   }
+}
+
+function resumeFromSegment(segments, startIdx) {
+  let segIdx = startIdx;
+  function playNext() {
+    if (!isSpeaking || segIdx >= segments.length) {
+      if (isSpeaking) {
+        isSpeaking = false;
+        pausedSegments = null;
+        document.getElementById('speakerWrapper').classList.remove('speaker-playing');
+        document.getElementById('screenBg').classList.remove('active');
+        document.getElementById('speakerStatus').textContent = '等待互动';
+        document.getElementById('speakerStatus').classList.remove('playing');
+        document.getElementById('waveBars').classList.remove('visible');
+        document.getElementById('stopBtn').classList.remove('visible');
+      }
+      return;
+    }
+    pausedSegIdx = segIdx; // 记录当前位置，供暂停用
+    const seg = segments[segIdx++];
+    const utt = new SpeechSynthesisUtterance(seg.text);
+    utt.lang = 'zh-CN';
+    utt.rate = seg.rate;
+    utt.pitch = seg.pitch;
+    const v = getChineseVoice();
+    if (v) utt.voice = v;
+    utt.onend = () => { if (seg.onEnd) seg.onEnd(); playNext(); };
+    utt.onerror = playNext;
+    window.speechSynthesis.speak(utt);
+  }
+  playNext();
 }
 
 // ===== Q&A 互动 =====
