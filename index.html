@@ -1260,7 +1260,7 @@
       <div class="now-playing-title" id="nowTitle"></div>
       <div class="now-playing-sub" id="nowSub"></div>
       <div class="now-playing-poem" id="nowPoem"></div>
-      <button class="stop-btn" id="stopBtn" onclick="stopSpeaker()">■ 停止播放</button>
+      <button class="stop-btn" id="stopBtn" onclick="togglePlayPause()">■ 停止播放</button>
       <button class="script-btn" id="scriptBtn" onclick="showScriptPanel()">📜 讲解内容</button>
       <!-- Interactive Q&A panel -->
       <div class="qa-panel" id="qaPanel">
@@ -2373,6 +2373,30 @@ function stopSpeaker() {
   document.getElementById('qaMicStatus').textContent = '';
   stopMic();
   document.getElementById('qaInput').value = '';
+}
+
+// 停止/继续播放切换
+function togglePlayPause() {
+  const btn = document.getElementById('stopBtn');
+  if (isSpeaking) {
+    // 暂停
+    if ('speechSynthesis' in window) window.speechSynthesis.pause();
+    isSpeaking = false;
+    document.getElementById('speakerWrapper').classList.remove('speaker-playing');
+    document.getElementById('waveBars').classList.remove('visible');
+    document.getElementById('speakerStatus').textContent = '已暂停';
+    document.getElementById('speakerStatus').classList.remove('playing');
+    btn.textContent = '▶ 继续播放';
+  } else if (window.speechSynthesis && window.speechSynthesis.paused) {
+    // 继续
+    window.speechSynthesis.resume();
+    isSpeaking = true;
+    document.getElementById('speakerWrapper').classList.add('speaker-playing');
+    document.getElementById('waveBars').classList.add('visible');
+    document.getElementById('speakerStatus').textContent = '播放中';
+    document.getElementById('speakerStatus').classList.add('playing');
+    btn.textContent = '■ 停止播放';
+  }
 }
 
 // ===== Q&A 互动 =====
