@@ -3031,18 +3031,24 @@ function startMic(auto) {
   }
   if (micActive) return;
 
-  // 自动触发时（auto=true），不直接开麦（需用户手势），只显示提示
   if (auto) {
     document.getElementById('qaMicStatus').textContent = '🎙 点击麦克风按钮说话';
     return;
   }
 
   micShouldRestart = true;
+  _doStartMic();
+}
+
+function _doStartMic() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition || micActive || !micShouldRestart) return;
 
   micRecognition = new SpeechRecognition();
   micRecognition.lang = 'zh-CN';
-  micRecognition.continuous = true;   // 持续监听，不自动关闭
+  micRecognition.continuous = false;      // Edge 兼容：false + 手动重启
   micRecognition.interimResults = true;
+  micRecognition.maxAlternatives = 1;
 
   micRecognition.onstart = () => {
     micActive = true;
@@ -3062,10 +3068,8 @@ function startMic(auto) {
     }
     if (final) {
       document.getElementById('qaInput').value = final;
-      document.getElementById('qaMicStatus').textContent = '✓ 识别完成，发送中…';
-      // 有最终结果，停麦并发送
       micShouldRestart = false;
-      micRecognition.stop();
+      document.getElementById('qaMicStatus').textContent = '✓ 发送中…';
     }
   };
 
@@ -3077,11 +3081,8 @@ function startMic(auto) {
       document.getElementById('qaMicStatus').textContent = '';
       sendQA();
     } else if (micShouldRestart) {
-      // 没有识别到内容（no-speech超时），自动重启继续监听
-      document.getElementById('qaMicStatus').textContent = '没听到，再说一遍…';
-      setTimeout(() => {
-        if (micShouldRestart) startMic(false);
-      }, 300);
+      document.getElementById('qaMicStatus').textContent = '没听到，请继续说…';
+      setTimeout(_doStartMic, 300);
     } else {
       document.getElementById('qaMicStatus').textContent = '';
     }
@@ -3092,14 +3093,11 @@ function startMic(auto) {
     document.getElementById('qaMicBtn').classList.remove('listening');
     if (e.error === 'not-allowed') {
       micShouldRestart = false;
-      document.getElementById('qaMicStatus').textContent = '请在浏览器地址栏点击🔒允许麦克风权限';
-    } else if (e.error === 'no-speech') {
-      // no-speech 不报错，onend 会自动重启
-      document.getElementById('qaMicStatus').textContent = '没听到，请说话…';
-    } else if (e.error === 'aborted') {
-      // 主动中止，不重启
+      document.getElementById('qaMicStatus').textContent = '请点击地址栏🔒允许麦克风权限';
+    } else if (e.error === 'no-speech' || e.error === 'aborted') {
+      // onend 会处理重启
     } else {
-      document.getElementById('qaMicStatus').textContent = '识别出错(' + e.error + ')，请重试';
+      document.getElementById('qaMicStatus').textContent = '出错(' + e.error + ')，请重试';
       micShouldRestart = false;
     }
   };
