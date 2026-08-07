@@ -2439,13 +2439,25 @@ function triggerSpeaker(mode, title, poemText, age) {
     });
 
     // 嵌套：interlude3 → remainingAfterKeyword
-    remainingAfterMeaning.push(makeInterlude(interlude3Text, remainingAfterKeyword));
+    if (isXunTing) {
+      remainingAfterMeaning.push(...remainingAfterKeyword);
+    } else {
+      remainingAfterMeaning.push(makeInterlude(interlude3Text, remainingAfterKeyword));
+    }
 
     // 嵌套：interlude2 → remainingAfterMeaning
-    remainingAfterIntro.push(makeInterlude(interlude2Text, remainingAfterMeaning));
+    if (isXunTing) {
+      remainingAfterIntro.push(...remainingAfterMeaning);
+    } else {
+      remainingAfterIntro.push(makeInterlude(interlude2Text, remainingAfterMeaning));
+    }
 
     // 嵌套：interlude1 → remainingAfterIntro
-    segments.push(makeInterlude(interlude1Text, remainingAfterIntro));
+    if (isXunTing) {
+      segments.push(...remainingAfterIntro);
+    } else {
+      segments.push(makeInterlude(interlude1Text, remainingAfterIntro));
+    }
 
   } else {
     // 无讲解数据：直接结束语
