@@ -2308,7 +2308,7 @@ function triggerSpeaker(mode, title, poemText, age) {
 
   // 根据年龄段定称呼
   const kidCall = level === 'L1' ? '小朋友' : level === 'L2' ? '小朋友' : '同学';
-  const isXunTing = mode === '熏听模式';
+  const isXunTing = mode.startsWith('熏听模式');
 
   // 中间互动引导：只在非熏听模式插入；熏听模式跳过互动直接继续
   // 每个 interlude 播完后弹出 QA 面板，等孩子说"没有问题"再播下一段
