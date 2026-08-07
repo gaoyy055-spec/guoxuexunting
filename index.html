@@ -324,10 +324,11 @@
     font-size: 12px;
     cursor: pointer;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s, background 0.2s;
     font-family: 'Noto Sans SC', sans-serif;
   }
-  .stop-btn.visible { opacity: 1; }
+  .stop-btn.visible { opacity: 1; pointer-events: auto; }
   .stop-btn:hover { background: var(--red); color: #fff; }
 
   .interrupt-mic-btn {
@@ -339,10 +340,11 @@
     font-size: 12px;
     cursor: pointer;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s, background 0.2s, border-color 0.2s, color 0.2s;
     font-family: 'Noto Sans SC', sans-serif;
   }
-  .interrupt-mic-btn.visible { opacity: 1; }
+  .interrupt-mic-btn.visible { opacity: 1; pointer-events: auto; }
   .interrupt-mic-btn.listening {
     border-color: var(--red);
     color: var(--red);
@@ -360,10 +362,11 @@
     font-size: 12px;
     cursor: pointer;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s, background 0.2s, color 0.2s;
     font-family: 'Noto Sans SC', sans-serif;
   }
-  .script-btn.visible { opacity: 1; }
+  .script-btn.visible { opacity: 1; pointer-events: auto; }
   .script-btn:hover { background: var(--brown-mid); color: #fff; }
 
   /* Interactive Q&A panel */
