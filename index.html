@@ -2319,6 +2319,7 @@ function triggerSpeaker(mode, title, poemText, age) {
 
   isSpeaking = true;
   startTTSKeepAlive(); // 启动保活，防止 Chrome 静默卡死
+  startWakeListener(); // 启动语音唤醒监听（停/暂停/小度小度 打断）
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
 
@@ -2335,12 +2336,14 @@ function triggerSpeaker(mode, title, poemText, age) {
 
   // ① 开场：柔和引入
   const openLine = level === 'L1'
-    ? kidCall + '，今天我们来学一首古诗，叫《' + poemTitle + '》，听我来读给你听哦！'
-    : kidCall + '，今天我们一起来学一首诗，叫《' + poemTitle + '》，作者是' + (data ? data.author : '') + '。先来听我读一遍吧！';
-  segments.push({ text: openLine, rate: 0.88, pitch: 1.05 });
+    ? '嗨，' + kidCall + '！今天我们来一起认识一首好听的古诗，叫做《' + poemTitle + '》，小度来读给你听，你听好啦～'
+    : level === 'L2'
+    ? '你好呀，' + kidCall + '！今天我们要一起学一首诗，叫《' + poemTitle + '》，作者是' + (data ? data.author : '') + '，先来听小度读一遍吧，认真听哦！'
+    : '同学，你好！今天我们要学一首古诗，叫《' + poemTitle + '》，作者是' + (data ? data.author : '') + '。先来完整听一遍，感受一下这首诗的意境吧。';
+  segments.push({ text: openLine, rate: 0.88, pitch: 1.08, label: 'open' });
 
   // ② 原文朗读
-  segments.push({ text: poemText, rate: 0.65, pitch: 1.05 });
+  segments.push({ text: poemText, rate: 0.65, pitch: 1.05, label: 'poem' });
 
   if (lv) {
     // ③ 朝代背景衔接语（仅L2/L3）
@@ -2348,31 +2351,30 @@ function triggerSpeaker(mode, title, poemText, age) {
       const bgIntro = level === 'L3'
         ? '好，接下来我们来了解一下背景。' + data.author + '是' + data.dynasty + '的诗人，这首诗背后有个值得了解的故事。'
         : '读完了，接下来我们来了解一下这首诗的朝代背景吧。这首诗的作者是' + data.author + '，生活在' + data.dynasty + '，是个非常有名的诗人。';
-      segments.push({ text: bgIntro, rate: 0.87, pitch: 1.0 });
+      segments.push({ text: bgIntro, rate: 0.87, pitch: 1.0, label: 'background' });
     }
     // ④ 大意衔接
     const introConnector = showBackground
       ? '了解了背景，我们再来看看这首诗在说什么。'
       : '读完了这首诗，我们来聊聊它在说什么吧！';
-    segments.push({ text: introConnector + lv.intro, rate: 0.88, pitch: 1.0 });
+    segments.push({ text: introConnector + lv.intro, rate: 0.88, pitch: 1.0, label: 'intro' });
     // ⑤ 关键词衔接
-    segments.push({ text: '我们来看看里面几个重要的词。' + lv.keyword, rate: 0.86, pitch: 1.0 });
+    segments.push({ text: '我们来看看里面几个重要的词。' + lv.keyword, rate: 0.86, pitch: 1.0, label: 'keyword' });
     // ⑥ 联系生活衔接
-    segments.push({ text: '说到这里，我们联系一下生活。' + lv.life, rate: 0.88, pitch: 1.0 });
+    segments.push({ text: '说到这里，我们联系一下生活。' + lv.life, rate: 0.88, pitch: 1.0, label: 'life' });
     // ⑦ 回到原诗衔接
-    segments.push({ text: '好啦，我们再回到这首诗，一起听一遍结尾：' + lv.back, rate: 0.82, pitch: 1.05 });
+    segments.push({ text: '好啦，我们再回到这首诗，一起听一遍结尾：' + lv.back, rate: 0.82, pitch: 1.05, label: 'back' });
   }
 
   // ⑧ 互动引导衔接语
   const qaLeadIn = level === 'L1'
-    ? '这首诗我们就讲到这里啦！小朋友，你有没有想问的问题呀？'
+    ? '好啦，《' + poemTitle + '》我们就讲到这里啦！小朋友，你有没有什么想问的呀？可以问小度古诗的意思，也可以跟诗人聊聊哦～'
     : level === 'L2'
-    ? '好，《' + poemTitle + '》我们就讲到这里。你有什么想问的吗？或者想跟诗人聊聊？'
-    : '今天的讲解先到这里。同学，你有什么想深入了解的，尽管问我哦。';
-  const qaPromptText = (data && data.interact) ? data.interact.qa : qaLeadIn;
+    ? '好，《' + poemTitle + '》我们就讲完啦！有什么想问的嘛？可以问我古诗的意思，也可以和诗人聊聊哦，我在呢～'
+    : '好，《' + poemTitle + '》今天就讲到这里了。同学，有什么想深入了解的尽管问我哦，也欢迎跟诗人来一场对话～';
   segments.push({
     text: qaLeadIn,
-    rate: 0.88, pitch: 1.0,
+    rate: 0.88, pitch: 1.05, label: 'qa',
     onEnd: () => showQAPanel(poemTitle, level, mode)
   });
 
@@ -2414,6 +2416,7 @@ function stopSpeaker() {
   isSpeaking = false;
   pausedSegments = null;
   stopTTSKeepAlive();
+  stopWakeListener();
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   document.getElementById('speakerWrapper').classList.remove('speaker-playing');
   document.getElementById('screenBg').classList.remove('active');
@@ -2443,10 +2446,18 @@ function interruptAndAsk() {
     return;
   }
 
+  _doInterruptAndAsk();
+}
+
+// 实际执行打断（按钮点击或语音唤醒都调用这里）
+function _doInterruptAndAsk() {
+  const btn = document.getElementById('interruptMicBtn');
+
   // 暂停播放
   if (isSpeaking) {
     window.speechSynthesis.cancel();
     isSpeaking = false;
+    stopWakeListener();
     document.getElementById('speakerWrapper').classList.remove('speaker-playing');
     document.getElementById('waveBars').classList.remove('visible');
     document.getElementById('speakerStatus').textContent = '已暂停';
@@ -2468,7 +2479,6 @@ function interruptAndAsk() {
   _doStartMic();
 
   // 麦克风关闭后恢复按钮状态
-  const origOnend = micRecognition ? micRecognition.onend : null;
   const checkBtn = setInterval(() => {
     if (!micActive) {
       btn.classList.remove('listening');
@@ -2476,6 +2486,77 @@ function interruptAndAsk() {
       clearInterval(checkBtn);
     }
   }, 300);
+}
+
+// ===== 播放时语音唤醒监听 =====
+let wakeRecognition = null;
+let wakeListening = false;
+
+function startWakeListener() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition || wakeListening) return;
+
+  wakeRecognition = new SpeechRecognition();
+  wakeRecognition.lang = 'zh-CN';
+  wakeRecognition.continuous = false;
+  wakeRecognition.interimResults = true;
+  wakeRecognition.maxAlternatives = 1;
+
+  wakeRecognition.onstart = () => { wakeListening = true; };
+
+  wakeRecognition.onresult = (e) => {
+    let text = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      text += e.results[i][0].transcript;
+    }
+    if (/^(停|暂停|小度小度)/.test(text)) {
+      // 检测到唤醒词，停止唤醒监听，执行打断
+      stopWakeListener();
+      const level = currentScript ? getLevel(currentScript.age) : 'L1';
+      // 如果说的不只是唤醒词，提取后面的问题
+      const question = text.replace(/^(停|暂停|小度小度)[，,、，]?\s*/, '').trim();
+      if (question) {
+        // 直接带着问题打断，先TTS回应再开麦
+        _doInterruptAndAsk();
+        // 稍后把问题填入并发送（等QA面板初始化完成）
+        setTimeout(() => {
+          document.getElementById('qaInput').value = question;
+          sendQA();
+        }, 800);
+      } else {
+        _doInterruptAndAsk();
+      }
+    }
+  };
+
+  wakeRecognition.onend = () => {
+    wakeListening = false;
+    // 如果还在播放，继续监听
+    if (isSpeaking) {
+      setTimeout(startWakeListener, 300);
+    }
+  };
+
+  wakeRecognition.onerror = () => {
+    wakeListening = false;
+    if (isSpeaking) {
+      setTimeout(startWakeListener, 1000);
+    }
+  };
+
+  try {
+    wakeRecognition.start();
+  } catch(e) {
+    wakeListening = false;
+  }
+}
+
+function stopWakeListener() {
+  wakeListening = false;
+  if (wakeRecognition) {
+    try { wakeRecognition.stop(); } catch(e) {}
+    wakeRecognition = null;
+  }
 }
 
 // 暂停/继续用的状态
@@ -2489,21 +2570,53 @@ function togglePlayPause() {
     // 暂停：取消TTS，记录当前进度
     window.speechSynthesis.cancel();
     isSpeaking = false;
+    stopWakeListener();
     document.getElementById('speakerWrapper').classList.remove('speaker-playing');
     document.getElementById('waveBars').classList.remove('visible');
     document.getElementById('speakerStatus').textContent = '已暂停';
     document.getElementById('speakerStatus').classList.remove('playing');
     btn.textContent = '▶ 继续播放';
   } else if (pausedSegments && pausedSegIdx < pausedSegments.length) {
-    // 继续：从暂停的段重新播放
+    // 继续：从暂停的段重新播放，先说衔接语
     isSpeaking = true;
     document.getElementById('speakerWrapper').classList.add('speaker-playing');
     document.getElementById('waveBars').classList.add('visible');
     document.getElementById('speakerStatus').textContent = '播放中';
     document.getElementById('speakerStatus').classList.add('playing');
     btn.textContent = '■ 停止播放';
-    resumeFromSegment(pausedSegments, pausedSegIdx);
+    startWakeListener(); // 恢复唤醒监听
+    const resumeSeg = pausedSegments[pausedSegIdx];
+    const bridgeText = getResumeBridgeText(resumeSeg ? resumeSeg.label : '');
+    if (bridgeText) {
+      const bridgeUtt = new SpeechSynthesisUtterance(bridgeText);
+      bridgeUtt.lang = 'zh-CN'; bridgeUtt.rate = 0.88; bridgeUtt.pitch = 1.05;
+      const bv = getChineseVoice(); if (bv) bridgeUtt.voice = bv;
+      bridgeUtt.onend = () => resumeFromSegment(pausedSegments, pausedSegIdx);
+      bridgeUtt.onerror = () => resumeFromSegment(pausedSegments, pausedSegIdx);
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(bridgeUtt);
+    } else {
+      resumeFromSegment(pausedSegments, pausedSegIdx);
+    }
   }
+}
+
+// 根据被打断的 segment label，生成续播衔接语
+function getResumeBridgeText(label) {
+  const title = currentScript ? currentScript.title.split(' — ')[0] : '这首诗';
+  const level = currentScript ? getLevel(currentScript.age) : 'L1';
+  const call = level === 'L1' ? '小朋友' : level === 'L2' ? '小朋友' : '同学';
+  const bridges = {
+    open:       '',  // 开头不需要衔接
+    poem:       `好，${call}，刚才我们刚开始，接下来听小度朗读古诗原文吧～`,
+    background: `${call}，我们继续哦！接下来来了解一下诗人的背景故事吧。`,
+    intro:      `${call}，我们继续来学习《${title}》！刚才朗读了古诗原文，接下来来学习这首诗的意思吧。`,
+    keyword:    `${call}，我们继续！接下来来看看这首诗里几个重要的词语吧。`,
+    life:       `${call}，我们继续！接下来把这首诗和我们的生活联系一下吧。`,
+    back:       `${call}，我们快讲完啦！最后再回到这首诗，一起来感受一下吧。`,
+    qa:         '',  // 互动引导段，不需要衔接
+  };
+  return bridges[label] !== undefined ? bridges[label] : `${call}，我们继续来学习《${title}》吧！`;
 }
 
 function resumeFromSegment(segments, startIdx) {
@@ -2843,9 +2956,10 @@ function processUserInput(q) {
     addBubble('ai', poetLabel + ' ' + fullReply);
 
     speakAsPoet(fullReply, author, () => {
+      const level = qaContext.level;
       const backMsg = level === 'L1'
-        ? '（诗人说完啦～还有什么想问的吗？）'
-        : '（诗人作答已毕，还有其他问题吗？）';
+        ? '诗人说完啦～还有其他问题吗？没有的话我们继续来学习这首诗吧！'
+        : '好的，诗人说完啦。还有其他问题吗？没有的话我们继续来学习这首诗吧～';
       qaContext.mode = 'normal';
       addBubble('ai', backMsg);
       speakText(backMsg, 0.88, () => {
@@ -2863,8 +2977,15 @@ function processUserInput(q) {
     const maxTurns = qaContext.goal === '背诵积累' ? 3 : 5;
 
     speakText(answer, 0.85, () => {
+      const followUp = qaContext.level === 'L1'
+        ? '还有其他问题吗？没有的话我们继续来学习这首诗吧～'
+        : '还有其他问题吗？没有的话我们继续来学习吧！';
       if (qaContext.turns < maxTurns) {
-        setTimeout(() => startMic(false), 400);
+        // 回答后柔和追问一下
+        addBubble('ai', followUp);
+        speakText(followUp, 0.88, () => {
+          setTimeout(() => startMic(false), 400);
+        });
       } else if (needRecite) {
         startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
       } else {
@@ -2877,9 +2998,9 @@ function processUserInput(q) {
 }
 
 function getAgeClosingLine(level) {
-  if (level === 'L1') return '今天学了好多！有空再来找我玩哦！';
-  if (level === 'L2') return '你问了很多好问题！下次我们可以继续聊。';
-  return '今天的探讨很有深度，下次我们可以聊聊这首诗的更多故事。';
+  if (level === 'L1') return '今天学了好多哦！有什么想问的嘛？可以问我古诗的意思，也可以跟诗人聊聊哦，有空再来找小度玩～';
+  if (level === 'L2') return '你问了很多好问题！有什么还没问到的嘛？可以问我古诗意思，或者和诗人聊聊哦～';
+  return '今天的探讨很有深度。还有什么想了解的吗？可以问我古诗的意思，也欢迎和诗人来一场对话～';
 }
 
 // ===== 背诵系统 =====
