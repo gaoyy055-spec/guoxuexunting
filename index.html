@@ -2308,91 +2308,165 @@ function triggerSpeaker(mode, title, poemText, age) {
 
   // 根据年龄段定称呼
   const kidCall = level === 'L1' ? '小朋友' : level === 'L2' ? '小朋友' : '同学';
+  const isXunTing = mode === '熏听模式';
+
+  // 中间互动引导：只在非熏听模式插入；熏听模式跳过互动直接继续
+  // 每个 interlude 播完后弹出 QA 面板，等孩子说"没有问题"再播下一段
+  function makeInterlude(text, nextSegments) {
+    return {
+      text,
+      rate: 0.88, pitch: 1.08, label: 'interlude',
+      onEnd: isXunTing ? null : () => {
+        showMidQAPanel(poemTitle, level, mode, nextSegments);
+      }
+    };
+  }
 
   // ① 开场：柔和引入
   const openLine = level === 'L1'
-    ? '嗨，' + kidCall + '！今天我们来一起认识一首好听的古诗，叫做《' + poemTitle + '》，小度来读给你听，你听好啦～'
+    ? '嗨～今天我们来认识一首好听的古诗，叫做《' + poemTitle + '》，来，先跟小度一起听一遍吧！'
     : level === 'L2'
-    ? '你好呀，' + kidCall + '！今天我们要一起学一首诗，叫《' + poemTitle + '》，作者是' + (data ? data.author : '') + '，先来听小度读一遍吧，认真听哦！'
-    : '同学，你好！今天我们要学一首古诗，叫《' + poemTitle + '》，作者是' + (data ? data.author : '') + '。先来完整听一遍，感受一下这首诗的意境吧。';
+    ? '你好呀！今天我们一起来学一首诗，叫《' + poemTitle + '》，作者是' + (data ? data.author : '') + '。先完整听一遍，感受一下吧！'
+    : '你好！今天我们要一起来读一首古诗，叫《' + poemTitle + '》，作者是' + (data ? data.author : '') + '。先完整听一遍，感受一下这首诗的意境。';
   segments.push({ text: openLine, rate: 0.88, pitch: 1.08, label: 'open' });
 
   // ② 原文朗读
   segments.push({ text: poemText, rate: 0.65, pitch: 1.05, label: 'poem' });
 
   if (lv) {
-    // ③ 诗人简介（所有等级都有，内容按等级区分）
+    // ③ 诗人简介
     const authorIntroText = data && data.authorIntro
       ? (data.authorIntro[level] || data.authorIntro.L2 || '')
       : '';
     if (authorIntroText) {
       const authorIntroConnector = level === 'L1'
-        ? '读完了！来认识一下这首诗的作者吧。'
+        ? '好，听完啦！我们先来认识一下写这首诗的人吧。'
         : level === 'L2'
-        ? '读完了，我们来认识一下这首诗的作者。'
-        : '读完了原文，先来了解一下诗人。';
+        ? '听完了，先来认识一下这首诗的作者。'
+        : '先来了解一下这位诗人。';
       segments.push({ text: authorIntroConnector + authorIntroText, rate: 0.87, pitch: 1.02, label: 'authorIntro' });
     }
 
-    // ④ 写作背景（所有等级都有）
+    // ④ 写作背景
     const contextText = data && data.context
       ? (data.context[level] || data.context.L2 || '')
       : '';
     if (contextText) {
       const contextConnector = level === 'L1'
-        ? '认识了作者，我们来听听这首诗是怎么写出来的。'
+        ? '认识了作者，我们再来听听，这首诗是在什么时候写出来的呀～'
         : level === 'L2'
-        ? '了解了作者，再来看看这首诗的写作背景。'
-        : '了解了诗人，我们再来看看这首诗的创作背景。';
+        ? '了解了作者，再来看看这首诗是怎么来的。'
+        : '了解了诗人，再来看看这首诗的创作背景。';
       segments.push({ text: contextConnector + contextText, rate: 0.87, pitch: 1.0, label: 'context' });
     }
 
-    // ⑤ 大意衔接
-    const introConnector = level === 'L1'
-      ? '好，现在我们来聊聊这首诗在说什么吧！'
+    // 【中间互动①】背景讲完后：问诗人/背景有无疑问
+    const interlude1Text = level === 'L1'
+      ? '好啦～关于这首诗的作者和背景，你有没有什么想问的呀？比如，想问问' + (data ? data.author : '诗人') + '为什么会写这首诗，都可以哦～没有问题的话我们就继续往下走！'
       : level === 'L2'
-      ? '了解了背景，我们再来看看这首诗讲了什么。'
-      : '了解了背景，接下来开始赏析这首诗。';
-    segments.push({ text: introConnector + lv.intro, rate: 0.88, pitch: 1.0, label: 'intro' });
-    // ⑥ 关键词衔接
-    segments.push({ text: '我们来看看里面几个重要的词。' + lv.keyword, rate: 0.86, pitch: 1.0, label: 'keyword' });
-    // ⑦ 联系生活衔接
-    segments.push({ text: '说到这里，我们联系一下生活。' + lv.life, rate: 0.88, pitch: 1.0, label: 'life' });
+      ? '好，关于这位诗人和这首诗的来历，你有没有什么想了解的？有问题尽管问，没有的话我们就接着往下讲～'
+      : '好，诗人和背景介绍完了。关于这部分你有什么疑问吗？可以问我，也可以直接向诗人提问。没有的话我们继续。';
+
+    // 后续段落（大意→关键词→生活→回读→最终互动）
+    const remainingAfterIntro = [];
+
+    // ⑤ 大意
+    const introConnector = level === 'L1'
+      ? '好，那我们来聊聊这首诗在说什么吧！'
+      : level === 'L2'
+      ? '好，我们来看看这首诗讲了什么。'
+      : '接下来我们来赏析这首诗。';
+    remainingAfterIntro.push({ text: introConnector + lv.intro, rate: 0.88, pitch: 1.0, label: 'intro' });
+
+    // 【中间互动②】大意讲完后：问画面/意思有无疑问
+    const interlude2Text = level === 'L1'
+      ? '好～你听懂这首诗在说什么了吗？脑海里有没有出现一幅画面呀？有没有哪里不太明白，或者觉得很有趣想问的？没有问题的话我们接着讲～'
+      : level === 'L2'
+      ? '好，大意就是这样。你对诗里描绘的画面或者意思，有没有哪里不太清楚的？有问题就问，没有的话我们继续往下走。'
+      : '好，大意讲完了。对于诗歌的意境和情感，你有什么想进一步探讨的吗？没有的话我们继续。';
+
+    const remainingAfterMeaning = [];
+
+    // ⑥ 关键词
+    const kwConnector = level === 'L1'
+      ? '好，我们再来看看这首诗里几个特别有意思的词！'
+      : level === 'L2'
+      ? '我们来细看几个关键词，搞清楚诗人到底在说什么。'
+      : '我们来深入看几个关键词和关键句。';
+    remainingAfterMeaning.push({ text: kwConnector + lv.keyword, rate: 0.86, pitch: 1.0, label: 'keyword' });
+
+    // 【中间互动③】关键词讲完后：问关键词/关键句有无疑问
+    const interlude3Text = level === 'L1'
+      ? '好啦！这几个词你听明白了吗？有没有哪个词还不清楚，想让我再讲讲的？没有问题的话我们就往下走咯～'
+      : level === 'L2'
+      ? '好，这几个关键词就是这些。有没有什么词或者句子还有疑问？没有的话我们接着来～'
+      : '好，关键词和关键句解析完了。对这部分还有什么疑问吗？没有的话我们继续。';
+
+    const remainingAfterKeyword = [];
+
+    // ⑦ 联系生活
+    const lifeConnector = level === 'L1'
+      ? '说到这里，我想请你想一想，在你的生活里有没有类似的感受～'
+      : level === 'L2'
+      ? '诗里说的这些，我们在生活里也能感受到。'
+      : '让我们把诗和生活联系起来。';
+    remainingAfterKeyword.push({ text: lifeConnector + lv.life, rate: 0.88, pitch: 1.0, label: 'life' });
+
     // ⑧ 回到原诗：朗读全文
     const backConnector = level === 'L1'
-      ? '好啦，我们学了这么多，最后再来完整听一遍这首诗吧！'
+      ? '好啦，我们学了这么多！最后，再来完整听一遍这首诗，感受一下吧～'
       : level === 'L2'
-      ? '赏析完啦！最后我们再来完整听一遍这首诗，感受一下。'
-      : '好，赏析就到这里。让我们带着刚才学到的理解，再来完整朗读一遍这首诗。';
-    segments.push({ text: backConnector + poemText, rate: 0.65, pitch: 1.05, label: 'back' });
+      ? '好，我们学完啦！最后再来完整听一遍，感受感受。'
+      : '好，赏析就到这里。让我们带着刚才的理解，再完整朗读一遍这首诗。';
+    remainingAfterKeyword.push({ text: backConnector + poemText, rate: 0.65, pitch: 1.05, label: 'back' });
+
+    // 最终互动引导
+    const qaLeadIn = isXunTing
+      ? (level === 'L1'
+          ? '好啦，《' + poemTitle + '》今天就讲到这里啦，小朋友好好把这首诗记在心里哦，我们下次再见～'
+          : level === 'L2'
+          ? '好，《' + poemTitle + '》今天就讲完啦，希望你喜欢这首诗，下次再一起学哦！'
+          : '好，《' + poemTitle + '》今天就讲完了，希望今天的分享对你有帮助，我们下次再见！')
+      : (level === 'L1'
+          ? '好啦！《' + poemTitle + '》我们全部讲完啦～你有没有什么想问的呀？可以问我古诗的意思，也可以跟' + (data ? data.author : '诗人') + '聊聊哦，我一直在这里！'
+          : level === 'L2'
+          ? '好，《' + poemTitle + '》我们全部讲完啦！还有什么想问的吗？可以问我古诗的意思，也可以和诗人聊聊，我在呢～'
+          : '好，《' + poemTitle + '》今天就全部讲完了。还有什么想深入了解的尽管问我，也欢迎跟诗人来一场对话。');
+    remainingAfterKeyword.push({
+      text: qaLeadIn,
+      rate: 0.88, pitch: 1.05, label: 'qa',
+      onEnd: isXunTing ? null : () => showQAPanel(poemTitle, level, mode)
+    });
+
+    // 嵌套：interlude3 → remainingAfterKeyword
+    remainingAfterMeaning.push(makeInterlude(interlude3Text, remainingAfterKeyword));
+
+    // 嵌套：interlude2 → remainingAfterMeaning
+    remainingAfterIntro.push(makeInterlude(interlude2Text, remainingAfterMeaning));
+
+    // 嵌套：interlude1 → remainingAfterIntro
+    segments.push(makeInterlude(interlude1Text, remainingAfterIntro));
+
+  } else {
+    // 无讲解数据：直接结束语
+    const qaLeadIn = isXunTing
+      ? (level === 'L1' ? '好啦，《' + poemTitle + '》今天就讲到这里啦，我们下次再见～' : '好，今天就讲到这里，下次再见！')
+      : (level === 'L1'
+          ? '好啦！小朋友，你有没有什么想问的呀？可以问我古诗的意思，也可以跟诗人聊聊哦～'
+          : '好，有什么想问的嘛？我在呢～');
+    segments.push({
+      text: qaLeadIn,
+      rate: 0.88, pitch: 1.05, label: 'qa',
+      onEnd: isXunTing ? null : () => showQAPanel(poemTitle, level, mode)
+    });
   }
 
-  // ⑧ 互动引导衔接语
-  const isXunTing = mode === '熏听模式';
-  const qaLeadIn = isXunTing
-    ? (level === 'L1'
-        ? '好啦，《' + poemTitle + '》今天就讲到这里啦，小朋友好好把这首诗记在心里哦，我们下次见！'
-        : level === 'L2'
-        ? '好，《' + poemTitle + '》今天就讲到这里了，希望你喜欢这首诗，下次再一起学哦！'
-        : '好，《' + poemTitle + '》今天就讲完了，希望今天的分享对你有帮助，我们下次再见！')
-    : (level === 'L1'
-        ? '好啦，《' + poemTitle + '》我们就讲到这里啦！小朋友，你有没有什么想问的呀？可以问小度古诗的意思，也可以跟诗人聊聊哦～'
-        : level === 'L2'
-        ? '好，《' + poemTitle + '》我们就讲完啦！有什么想问的嘛？可以问我古诗的意思，也可以和诗人聊聊哦，我在呢～'
-        : '好，《' + poemTitle + '》今天就讲到这里了。同学，有什么想深入了解的尽管问我哦，也欢迎跟诗人来一场对话～');
-  segments.push({
-    text: qaLeadIn,
-    rate: 0.88, pitch: 1.05, label: 'qa',
-    onEnd: isXunTing ? null : () => showQAPanel(poemTitle, level, mode)
-  });
-
-  // 链式播放
-  pausedSegments = segments; // 保存 segments 供暂停/继续用
+  // 链式播放（支持 interlude 节点——播完后暂停等待孩子回应，"没有问题"后继续）
+  pausedSegments = segments;
   pausedSegIdx = 0;
   let segIdx = 0;
   function playNext() {
     if (!isSpeaking || segIdx >= segments.length) {
-      // 全部播完，进入等待互动状态
       if (isSpeaking) {
         isSpeaking = false;
         pausedSegments = null;
@@ -2413,11 +2487,83 @@ function triggerSpeaker(mode, title, poemText, age) {
     utt.pitch = seg.pitch;
     const v = getChineseVoice();
     if (v) utt.voice = v;
-    utt.onend = () => { if (seg.onEnd) seg.onEnd(); playNext(); };
+    utt.onend = () => {
+      if (seg.onEnd) {
+        seg.onEnd(); // interlude: onEnd 负责继续播放，不调 playNext
+      } else {
+        playNext();
+      }
+    };
     utt.onerror = playNext;
     window.speechSynthesis.speak(utt);
   }
   playNext();
+}
+
+// 中间互动面板：播完 interlude 后调用，等孩子说"没有问题"后继续播 nextSegments
+function showMidQAPanel(poemTitle, level, goal, nextSegments) {
+  const data = POEM_DATA[poemTitle];
+  qaContext = {
+    poemTitle, level, goal: goal || '', turns: 0, mode: 'normal', poetGreeted: false,
+    midMode: true,
+    onResume: () => {
+      document.getElementById('qaPanel').classList.remove('visible');
+      document.getElementById('qaHistory').innerHTML = '';
+      isSpeaking = true;
+      document.getElementById('speakerWrapper').classList.add('speaker-playing');
+      document.getElementById('screenBg').classList.add('active');
+      document.getElementById('speakerStatus').textContent = '播放中';
+      document.getElementById('speakerStatus').classList.add('playing');
+      document.getElementById('waveBars').classList.add('visible');
+      pausedSegments = nextSegments;
+      pausedSegIdx = 0;
+      let idx = 0;
+      function playSegs() {
+        if (!isSpeaking || idx >= nextSegments.length) {
+          if (isSpeaking) {
+            isSpeaking = false;
+            pausedSegments = null;
+            document.getElementById('speakerWrapper').classList.remove('speaker-playing');
+            document.getElementById('screenBg').classList.remove('active');
+            document.getElementById('speakerStatus').textContent = '等待互动';
+            document.getElementById('speakerStatus').classList.remove('playing');
+            document.getElementById('waveBars').classList.remove('visible');
+            document.getElementById('stopBtn').classList.remove('visible');
+          }
+          return;
+        }
+        pausedSegIdx = idx;
+        const seg = nextSegments[idx++];
+        const utt2 = new SpeechSynthesisUtterance(seg.text);
+        utt2.lang = 'zh-CN';
+        utt2.rate = seg.rate;
+        utt2.pitch = seg.pitch;
+        const v2 = getChineseVoice();
+        if (v2) utt2.voice = v2;
+        utt2.onend = () => { if (seg.onEnd) { seg.onEnd(); } else { playSegs(); } };
+        utt2.onerror = playSegs;
+        window.speechSynthesis.speak(utt2);
+      }
+      playSegs();
+    }
+  };
+  const panel = document.getElementById('qaPanel');
+  const prompt = document.getElementById('qaPrompt');
+  const suggest = document.getElementById('qaSuggest');
+  document.getElementById('qaHistory').innerHTML = '';
+  document.getElementById('qaMicStatus').textContent = '';
+  prompt.textContent = level === 'L1'
+    ? '有什么想问的吗？说"没有问题"我们就继续～'
+    : '有问题随时问，说"没有问题"继续讲解。';
+  const author = data ? data.author : '';
+  suggest.innerHTML = [
+    '没有问题',
+    author ? `我想跟${author}聊聊` : '跟诗人聊聊',
+    '这首诗是什么意思？',
+    '为什么这样写？',
+  ].map(s => `<button class="qa-suggest-chip" onclick="fillAndSend('${s}')">${s}</button>`).join('');
+  panel.classList.add('visible');
+  setTimeout(() => startMic(true), 600);
 }
 
 function stopSpeaker() {
@@ -2983,7 +3129,18 @@ function processUserInput(q) {
     // 检查用户是否表示"没有问题了"（在等待追问时）
     const noMoreQ = /^(没有|没了|不了|没问题|不用了|不问了|好了|行了|够了|结束|可以了|就这些|没其他问题|no|nope)/i.test(q.trim());
     if (noMoreQ && qaContext.turns > 0) {
-      // 用户表示没有更多问题
+      // 中间互动：继续后续讲解
+      if (qaContext.midMode && qaContext.onResume) {
+        const resumeMsg = qaContext.level === 'L1'
+          ? '好！那我们继续往下讲吧～'
+          : '好，那我们继续。';
+        addBubble('ai', resumeMsg);
+        speakText(resumeMsg, 0.88, () => {
+          qaContext.onResume();
+        });
+        return;
+      }
+      // 最终互动：结束或进入背诵
       if (qaContext.goal === '背诵积累') {
         startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
       } else {
