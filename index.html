@@ -2371,11 +2371,17 @@ function triggerSpeaker(mode, title, poemText, age) {
     const remainingAfterIntro = [];
 
     // ⑤ 大意
-    const introConnector = level === 'L1'
-      ? '好，小朋友！现在我们来揭开谜底——这首诗到底在说什么呀？'
-      : level === 'L2'
-      ? '好，小朋友！接下来我们一起来破解这首诗，看看诗人到底在说什么！'
-      : '好！小朋友，接下来我们深入走进这首诗，看看它到底蕴藏了什么力量！';
+    const introConnector = isXunTing
+      ? (level === 'L1'
+          ? '了解了这首诗的来历，接下来我们来看看它到底在说什么吧！'
+          : level === 'L2'
+          ? '了解了背景，接下来我们来读懂这首诗——'
+          : '了解了创作背景，接下来我们深入走进这首诗——')
+      : (level === 'L1'
+          ? '好，小朋友！现在我们来揭开谜底——这首诗到底在说什么呀？'
+          : level === 'L2'
+          ? '好，小朋友！接下来我们一起来破解这首诗，看看诗人到底在说什么！'
+          : '好！小朋友，接下来我们深入走进这首诗，看看它到底蕴藏了什么力量！');
     remainingAfterIntro.push({ text: introConnector + lv.intro, rate: 0.88, pitch: 1.0, label: 'intro' });
 
     // 【中间互动②】大意讲完后：问画面/意思有无疑问
@@ -2388,11 +2394,17 @@ function triggerSpeaker(mode, title, poemText, age) {
     const remainingAfterMeaning = [];
 
     // ⑥ 关键词
-    const kwConnector = level === 'L1'
-      ? '好！小朋友，现在我们来找找这首诗里几个特别神奇的词，它们可有大学问啦！'
-      : level === 'L2'
-      ? '小朋友，接下来我们来细细品几个关键词，看看诗人藏了什么秘密！'
-      : '小朋友，现在我们来深挖这首诗里的关键词和关键句，看看诗人是怎么用文字创造奇迹的！';
+    const kwConnector = isXunTing
+      ? (level === 'L1'
+          ? '我们再来看看诗里几个特别神奇的词！'
+          : level === 'L2'
+          ? '接下来我们细细品几个关键词——'
+          : '接下来我们来看几个关键词和关键句——')
+      : (level === 'L1'
+          ? '好！小朋友，现在我们来找找这首诗里几个特别神奇的词，它们可有大学问啦！'
+          : level === 'L2'
+          ? '小朋友，接下来我们来细细品几个关键词，看看诗人藏了什么秘密！'
+          : '小朋友，现在我们来深挖这首诗里的关键词和关键句，看看诗人是怎么用文字创造奇迹的！');
     remainingAfterMeaning.push({ text: kwConnector + lv.keyword, rate: 0.86, pitch: 1.0, label: 'keyword' });
 
     // 【中间互动③】关键词讲完后：问关键词/关键句有无疑问
@@ -2440,7 +2452,6 @@ function triggerSpeaker(mode, title, poemText, age) {
 
     // 嵌套：interlude3 → remainingAfterKeyword
     if (isXunTing) {
-      // 熏听模式：跳过互动引导语，直接衔接生活联系
       remainingAfterMeaning.push(...remainingAfterKeyword);
     } else {
       remainingAfterMeaning.push(makeInterlude(interlude3Text, remainingAfterKeyword));
@@ -2448,13 +2459,6 @@ function triggerSpeaker(mode, title, poemText, age) {
 
     // 嵌套：interlude2 → remainingAfterMeaning
     if (isXunTing) {
-      // 熏听模式：大意讲完直接进关键词，加一句流畅过渡语
-      const bridge2 = level === 'L1'
-        ? '我们再来看看诗里几个特别有意思的词！'
-        : level === 'L2'
-        ? '接下来我们再细细品几个关键词——'
-        : '接下来我们深入看几个关键词和关键句——';
-      remainingAfterIntro.push({ text: bridge2, rate: 0.88, pitch: 1.05, label: 'bridge2' });
       remainingAfterIntro.push(...remainingAfterMeaning);
     } else {
       remainingAfterIntro.push(makeInterlude(interlude2Text, remainingAfterMeaning));
@@ -2462,13 +2466,6 @@ function triggerSpeaker(mode, title, poemText, age) {
 
     // 嵌套：interlude1 → remainingAfterIntro
     if (isXunTing) {
-      // 熏听模式：背景讲完直接进大意，加一句流畅过渡语
-      const bridge1 = level === 'L1'
-        ? '了解了这首诗的来历，我们来看看它到底在说什么吧！'
-        : level === 'L2'
-        ? '了解了背景，接下来我们一起来读懂这首诗——'
-        : '了解了创作背景，接下来我们深入走进这首诗——';
-      segments.push({ text: bridge1, rate: 0.88, pitch: 1.05, label: 'bridge1' });
       segments.push(...remainingAfterIntro);
     } else {
       segments.push(makeInterlude(interlude1Text, remainingAfterIntro));
