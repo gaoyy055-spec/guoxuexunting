@@ -1347,11 +1347,9 @@
           </div>
           <div class="filter-area">
             <div class="filter-row">
-              <span class="filter-label">年龄</span>
-              <button class="filter-chip active" onclick="setFilter(this,'age')">全部</button>
-              <button class="filter-chip" onclick="setFilter(this,'age')">4-6岁</button>
-              <button class="filter-chip" onclick="setFilter(this,'age')">7-9岁</button>
-              <button class="filter-chip" onclick="setFilter(this,'age')">10-12岁</button>
+              <span class="filter-label">学段</span>
+              <button class="filter-chip active" onclick="setFilter(this,'school')">全部</button>
+              <button class="filter-chip" onclick="setFilter(this,'school')">小学</button>
             </div>
             <div class="filter-row">
               <span class="filter-label">年级</span>
@@ -1359,15 +1357,15 @@
               <button class="filter-chip" onclick="setFilter(this,'grade')">1年级</button>
               <button class="filter-chip" onclick="setFilter(this,'grade')">2年级</button>
               <button class="filter-chip" onclick="setFilter(this,'grade')">3年级</button>
+              <button class="filter-chip" onclick="setFilter(this,'grade')">4年级</button>
               <button class="filter-chip" onclick="setFilter(this,'grade')">5年级</button>
+              <button class="filter-chip" onclick="setFilter(this,'grade')">6年级</button>
             </div>
             <div class="filter-row">
-              <span class="filter-label">主题</span>
-              <button class="filter-chip active" onclick="setFilter(this,'theme')">全部</button>
-              <button class="filter-chip" onclick="setFilter(this,'theme')">山水</button>
-              <button class="filter-chip" onclick="setFilter(this,'theme')">思乡</button>
-              <button class="filter-chip" onclick="setFilter(this,'theme')">节气</button>
-              <button class="filter-chip" onclick="setFilter(this,'theme')">励志</button>
+              <span class="filter-label">学期</span>
+              <button class="filter-chip active" onclick="setFilter(this,'semester')">全部</button>
+              <button class="filter-chip" onclick="setFilter(this,'semester')">上册</button>
+              <button class="filter-chip" onclick="setFilter(this,'semester')">下册</button>
             </div>
           </div>
           <div class="section-header">
@@ -1431,19 +1429,19 @@
               <div class="modal-title">选择学习目标</div>
               <div class="modal-sub">根据目标自动调整播放模式与互动强度</div>
               <div class="goal-list">
-                <button class="goal-item" onclick="selectGoal(this,'日常熏听')">
+                <button class="goal-item" onclick="selectGoal(this,'熏听模式')">
                   <span class="goal-icon">🎵</span>
-                  <div><div class="goal-name">日常熏听</div><div class="goal-desc">每日一诗，中低互动强度，背诵可选</div></div>
+                  <div><div class="goal-name">熏听模式</div><div class="goal-desc">只听讲解，安静熏陶，不开启互动</div></div>
                   <div class="goal-check">✓</div>
                 </button>
                 <button class="goal-item" onclick="selectGoal(this,'课内同步')">
                   <span class="goal-icon">📖</span>
-                  <div><div class="goal-name">课内同步</div><div class="goal-desc">必背古诗，中等互动，背诵任务开启</div></div>
+                  <div><div class="goal-name">课内同步</div><div class="goal-desc">必背古诗，讲解后进入互动答疑</div></div>
                   <div class="goal-check">✓</div>
                 </button>
                 <button class="goal-item" onclick="selectGoal(this,'背诵积累')">
                   <span class="goal-icon">🏆</span>
-                  <div><div class="goal-name">背诵积累</div><div class="goal-desc">必背古诗，高互动强度，背诵任务开启</div></div>
+                  <div><div class="goal-name">背诵积累</div><div class="goal-desc">互动答疑后引导背诵，强化记忆</div></div>
                   <div class="goal-check">✓</div>
                 </button>
               </div>
@@ -1587,6 +1585,7 @@ const ALBUMS = [
   {
     id: 0, title: '春晓·四季之诗', grade: '1-2年级',
     age: ['4-6岁','7-9岁'], grades: ['1年级','2年级'], themes: ['山水'],
+    semesters: ['上册'], school: '小学',
     img: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=300&h=300&fit=crop&auto=format',
     poems: [
       { title: '春晓', author: '孟浩然', text: '春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。', learned: true },
@@ -1597,6 +1596,7 @@ const ALBUMS = [
   {
     id: 1, title: '静夜思·思乡情', grade: '3-4年级',
     age: ['7-9岁'], grades: ['3年级','4年级'], themes: ['思乡'],
+    semesters: ['上册'], school: '小学',
     img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=300&h=300&fit=crop&auto=format',
     poems: [
       { title: '静夜思', author: '李白', text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。', learned: true },
@@ -1606,6 +1606,7 @@ const ALBUMS = [
   {
     id: 2, title: '三年级必背古诗', grade: '3年级',
     age: ['7-9岁'], grades: ['3年级'], themes: ['节气','励志'],
+    semesters: ['下册'], school: '小学',
     img: 'https://images.unsplash.com/photo-1545038522-9bb451739ab9?w=300&h=300&fit=crop&auto=format',
     poems: [
       { title: '早发白帝城', author: '李白', text: '朝辞白帝彩云间，千里江陵一日还。两岸猿声啼不住，轻舟已过万重山。', learned: false },
@@ -1616,6 +1617,7 @@ const ALBUMS = [
   {
     id: 3, title: '中秋咏月集', grade: '5-6年级',
     age: ['10-12岁'], grades: ['5年级'], themes: ['节气','思乡'],
+    semesters: ['上册'], school: '小学',
     img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop&auto=format',
     poems: [
       { title: '静夜思', author: '李白', text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。', learned: false },
@@ -2164,7 +2166,7 @@ function stopTTSKeepAlive() {
 }
 
 // Active filters
-let activeAge = '全部', activeGrade = '全部', activeTheme = '全部';
+let activeSchool = '全部', activeGrade = '全部', activeSemester = '全部';
 
 // ===== CLOCK =====
 function updateClock() {
@@ -2193,19 +2195,19 @@ function setFilter(btn, group) {
   btn.closest('.filter-row').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
   const val = btn.textContent;
-  if (group === 'age') activeAge = val;
+  if (group === 'school') activeSchool = val;
   else if (group === 'grade') activeGrade = val;
-  else if (group === 'theme') activeTheme = val;
+  else if (group === 'semester') activeSemester = val;
   renderAlbumGrid();
 }
 
 function renderAlbumGrid() {
   const grid = document.getElementById('albumGrid');
   const filtered = ALBUMS.filter(a => {
-    const ageOk = activeAge === '全部' || a.age.includes(activeAge);
+    const schoolOk = activeSchool === '全部' || a.school === activeSchool;
     const gradeOk = activeGrade === '全部' || a.grades.includes(activeGrade);
-    const themeOk = activeTheme === '全部' || a.themes.includes(activeTheme);
-    return ageOk && gradeOk && themeOk;
+    const semesterOk = activeSemester === '全部' || a.semesters.includes(activeSemester);
+    return schoolOk && gradeOk && semesterOk;
   });
   if (filtered.length === 0) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px 0;color:#8B7355;font-size:13px">暂无符合条件的专辑</div>';
@@ -2352,7 +2354,7 @@ function confirmPush() {
   hideGoalModal();
   const album = ALBUMS[currentAlbumId];
   const poem = selectedPoemIdx >= 0 ? album.poems[selectedPoemIdx] : album.poems[0];
-  const goal = selectedGoalEl || '日常熏听';
+  const goal = selectedGoalEl || '熏听模式';
   const title = poem.title + ' — ' + poem.author;
   const text = poem.text;
   const albumAge = album.age[album.age.length - 1]; // 取最高年龄段作为讲解层级依据
@@ -2386,7 +2388,7 @@ function toggleAutoPlay(btn) {
   btn.classList.toggle('on', autoPlayOn);
   if (autoPlayOn && pendingTask) {
     triggerSpeaker(
-      (pendingTask.goal || '日常熏听') + ' · ' + pendingTask.albumTitle,
+      (pendingTask.goal || '熏听模式') + ' · ' + pendingTask.albumTitle,
       pendingTask.title,
       pendingTask.text,
       pendingTask.age
@@ -2491,15 +2493,22 @@ function triggerSpeaker(mode, title, poemText, age) {
   }
 
   // ⑧ 互动引导衔接语
-  const qaLeadIn = level === 'L1'
-    ? '好啦，《' + poemTitle + '》我们就讲到这里啦！小朋友，你有没有什么想问的呀？可以问小度古诗的意思，也可以跟诗人聊聊哦～'
-    : level === 'L2'
-    ? '好，《' + poemTitle + '》我们就讲完啦！有什么想问的嘛？可以问我古诗的意思，也可以和诗人聊聊哦，我在呢～'
-    : '好，《' + poemTitle + '》今天就讲到这里了。同学，有什么想深入了解的尽管问我哦，也欢迎跟诗人来一场对话～';
+  const isXunTing = mode === '熏听模式';
+  const qaLeadIn = isXunTing
+    ? (level === 'L1'
+        ? '好啦，《' + poemTitle + '》今天就讲到这里啦，小朋友好好把这首诗记在心里哦，我们下次见！'
+        : level === 'L2'
+        ? '好，《' + poemTitle + '》今天就讲到这里了，希望你喜欢这首诗，下次再一起学哦！'
+        : '好，《' + poemTitle + '》今天就讲完了，希望今天的分享对你有帮助，我们下次再见！')
+    : (level === 'L1'
+        ? '好啦，《' + poemTitle + '》我们就讲到这里啦！小朋友，你有没有什么想问的呀？可以问小度古诗的意思，也可以跟诗人聊聊哦～'
+        : level === 'L2'
+        ? '好，《' + poemTitle + '》我们就讲完啦！有什么想问的嘛？可以问我古诗的意思，也可以和诗人聊聊哦，我在呢～'
+        : '好，《' + poemTitle + '》今天就讲到这里了。同学，有什么想深入了解的尽管问我哦，也欢迎跟诗人来一场对话～');
   segments.push({
     text: qaLeadIn,
     rate: 0.88, pitch: 1.05, label: 'qa',
-    onEnd: () => showQAPanel(poemTitle, level, mode)
+    onEnd: isXunTing ? null : () => showQAPanel(poemTitle, level, mode)
   });
 
   // 链式播放
@@ -3095,11 +3104,25 @@ function processUserInput(q) {
   } else {
     // ===== 普通答疑模式 =====
     qaContext.mode = 'normal';
+
+    // 检查用户是否表示"没有问题了"（在等待追问时）
+    const noMoreQ = /^(没有|没了|不了|没问题|不用了|不问了|好了|行了|够了|结束|可以了|就这些|没其他问题|no|nope)/i.test(q.trim());
+    if (noMoreQ && qaContext.turns > 0) {
+      // 用户表示没有更多问题
+      if (qaContext.goal === '背诵积累') {
+        startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
+      } else {
+        const closeMsg = getAgeClosingLine(qaContext.level);
+        addBubble('ai', closeMsg);
+        speakText(closeMsg, 0.88);
+      }
+      return;
+    }
+
     const answer = getQAAnswer(qaContext.poemTitle, q);
     addBubble('ai', answer);
 
-    const needRecite = qaContext.goal === '课内同步' || qaContext.goal === '背诵积累';
-    const maxTurns = qaContext.goal === '背诵积累' ? 3 : 5;
+    const maxTurns = qaContext.goal === '背诵积累' ? 3 : 999;
 
     speakText(answer, 0.85, () => {
       const followUp = qaContext.level === 'L1'
@@ -3111,12 +3134,9 @@ function processUserInput(q) {
         speakText(followUp, 0.88, () => {
           setTimeout(() => startMic(false), 400);
         });
-      } else if (needRecite) {
-        startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
       } else {
-        const closeMsg = getAgeClosingLine(qaContext.level);
-        addBubble('ai', closeMsg);
-        speakText(closeMsg, 0.88);
+        // 背诵积累达到3轮上限，引导背诵
+        startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
       }
     });
   }
