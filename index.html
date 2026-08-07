@@ -1344,7 +1344,7 @@
               <span></span><span></span><span></span>
             </button>
           </div>
-          <div class="banner" onclick="goToAlbum(3)">
+          <div class="banner" onclick="goToAlbum(12)">
             <img src="https://images.unsplash.com/photo-1572940639050-49166eb37404?w=700&h=312&fit=crop&auto=format" alt="中秋咏月">
             <div class="banner-overlay"></div>
             <div class="banner-content">
@@ -1744,6 +1744,16 @@ const ALBUMS = [
       { title: '清平乐', author: '黄庭坚', text: '春归何处？寂寞无行路。若有人知春去处，唤取归来同住。春无踪迹谁知？除非问取黄鹂。百啭无人能解，因风飞过蔷薇。', learned: false },
     ]
   },
+  {
+    id: 12, title: '中秋咏月', grade: '中秋特辑',
+    grades: ['1年级','2年级','3年级','4年级','5年级','6年级'], semesters: ['上册','下册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1572940639050-49166eb37404?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '静夜思', author: '李白', text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。', learned: false },
+      { title: '水调歌头', author: '苏轼', text: '明月几时有？把酒问青天。不知天上宫阙，今夕是何年。我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间。', learned: false },
+      { title: '十五夜望月', author: '王建', text: '中庭地白树栖鸦，冷露无声湿桂花。今夜月明人尽望，不知秋思落谁家。', learned: false },
+    ]
+  },
 ];
 
 // album card images in home grid (index matches ALBUMS)
@@ -1760,6 +1770,7 @@ const ALBUM_CARD_IMGS = [
   'https://images.unsplash.com/photo-1572940639050-49166eb37404?w=200&h=200&fit=crop&auto=format',
   'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=200&h=200&fit=crop&auto=format',
   'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1572940639050-49166eb37404?w=200&h=200&fit=crop&auto=format',
 ];
 
 let currentScript = null; // { title, author, text, goal, albumTitle, age }
