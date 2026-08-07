@@ -830,7 +830,6 @@
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
   }
   .filter-row::-webkit-scrollbar { display: none; }
   .filter-label { font-size: 11px; color: var(--brown-mid); min-width: 28px; flex-shrink: 0; }
@@ -846,6 +845,7 @@
     transition: all 0.2s;
     font-family: 'Noto Sans SC', sans-serif;
     flex-shrink: 0;
+    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
   }
@@ -1797,6 +1797,7 @@ const POEM_DATA = {
       L2: '李白游览庐山时，被香炉峰的大瀑布震撼，觉得那瀑布就像天上的银河掉下来一样，激动地写下了这首壮美的诗。',
       L3: '公元725年前后，李白漫游江南，登临庐山。庐山香炉峰瀑布的壮观景象令他叹为观止，他以极度夸张的浪漫主义笔法写下此诗，展示了他对大自然磅礴之气的热烈礼赞。',
     },
+    L1: {
       intro: '这首诗在说一个超级大的瀑布！水从好高好高的山上哗哗地冲下来，可壮观了！',
       keyword: '"瀑布"就是从山上流下来的水，"银河"就是夜晚天上那条亮亮的星星带。',
       life: '李白觉得这瀑布太厉害了，就像天上的银河掉下来了一样！',
@@ -1828,6 +1829,7 @@ const POEM_DATA = {
       L2: '李白五十多岁时，因犯了错被流放，后来朝廷特赦，他终于可以回家了！高兴极了的他乘船顺江而下，一路轻快，写下了这首充满喜悦的诗。',
       L3: '唐肃宗乾元二年（759年），李白遇赦，从白帝城乘舟东下归蜀。在喜悦与轻松中，他以飞快的笔触写下此诗，借船速写心情，寓情于景，含而不露。',
     },
+    L1: {
       intro: '这首诗在说一条小船，在大江上飞快地走，一眨眼就过了好多好多山！',
       keyword: '"轻舟"就是小船，"万重山"就是好多好多座山。',
       life: '就像你坐车，一会儿就到了——诗人的船也超级快！',
@@ -1859,6 +1861,7 @@ const POEM_DATA = {
       L2: '柳宗元被贬到永州后，心情很孤独。某个大雪天，他看到江面上一个老渔翁独自在严寒中钓鱼，感触很深，写下了这首诗来表达自己不向困难低头的心情。',
       L3: '柳宗元被贬永州期间，处境艰难却意志坚韧。他以大雪封山、万籁俱寂的江面为背景，写一位独钓的老翁，以景喻己，寄托了孤高不屈的精神。这首诗是他内心独白的绝佳载体。',
     },
+    L1: {
       intro: '这首诗在说一个大雪天，到处都安安静静的，只有一个老爷爷在江上钓鱼。',
       keyword: '"孤舟"是一条孤单的小船，"蓑笠翁"是穿蓑衣戴斗笠的老爷爷。',
       life: '你见过大雪天吗？外面安安静静，什么声音都没有——这首诗就是那种感觉。',
@@ -1890,6 +1893,7 @@ const POEM_DATA = {
       L2: '这首诗写于王安石推行新法的时期，他看到新年的热闹景象：放鞭炮、喝屠苏酒、换新桃符，心情很好，也借这首诗表达了他希望国家"除旧布新"的愿望。',
       L3: '《元日》写于宋神宗熙宁年间，王安石任宰相，正积极推行变法。新年之际，他借爆竹、屠苏、桃符等民俗意象，将节日喜庆与改革志向巧妙融合，写出了一首充满政治热情的新年诗。',
     },
+    L1: {
       intro: '这首诗在说过年啦！放鞭炮、换新的门画，超级热闹！',
       keyword: '"爆竹"就是鞭炮，"新桃换旧符"就是把旧门画换成新的。',
       life: '就像你过春节贴春联、放鞭炮——诗人写的就是这种过年的热闹！',
@@ -1921,6 +1925,7 @@ const POEM_DATA = {
       L2: '宋神宗熙宁九年（1076年）中秋，苏轼在密州任职，与弟弟苏辙分离已七年。他独对明月，举杯对天，把思念弟弟的情感化成了这首千古名词。',
       L3: '熙宁九年中秋，苏轼被贬密州，兄弟相隔七年未见。他借中秋望月，从问天追问（明月几时有）到幻想飞升（欲乘风归去）再到人间释怀（何似在人间），最终以"但愿人长久"升华为对所有人的祝愿，情感层次极为丰富。',
     },
+    L1: {
       intro: '中秋节，苏轼一边看月亮，一边想念自己的弟弟，把这种思念写成了这首词。',
       keyword: '"明月"就是圆圆的月亮，"人间"就是我们住的地方。',
       life: '就像你过节如果见不到好朋友，会不会一边看月亮一边想他们？',
@@ -1952,6 +1957,7 @@ const POEM_DATA = {
       L2: '张九龄在外任职，与亲人相隔很远。某个月圆之夜，他站在海边，看到月亮从大海上升起，思念之情涌上心头，写下了这首思念远方亲人的诗。',
       L3: '这首诗写于张九龄晚年遭贬南方之后，仕途失意、远离故土。他以海上明月为起点，将个人思念升华为普天共望的宏阔意境，开篇"海上生明月，天涯共此时"便成为千古吟咏的名句。',
     },
+    L1: {
       intro: '张九龄在海边看到月亮升起来，想起了远方的家人，心里好想念他们。',
       keyword: '"海上"就是大海上，"天涯"就是很远很远的地方。',
       life: '就像你想念外地的爷爷奶奶——两个人虽然很远，但看的是同一个月亮。',
@@ -2208,6 +2214,7 @@ function setFilter(btn, group) {
   else if (group === 'semester') activeSemester = val;
   renderAlbumGrid();
 }
+
 
 function renderAlbumGrid() {
   const grid = document.getElementById('albumGrid');
@@ -3506,6 +3513,24 @@ function stopMic() {
 // ===== INIT =====
 renderAlbumGrid();
 applyLoop();
+
+// Filter chip event delegation (robust click & touch handling)
+document.getElementById('screen-home').addEventListener('click', function(e) {
+  const chip = e.target.closest('.filter-chip');
+  if (!chip) return;
+  const row = chip.closest('.filter-row');
+  if (!row) return;
+  row.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  const val = chip.textContent.trim();
+  // Determine group from sibling label text
+  const label = row.querySelector('.filter-label');
+  const labelText = label ? label.textContent.trim() : '';
+  if (labelText === '学段') activeSchool = val;
+  else if (labelText === '年级') activeGrade = val;
+  else if (labelText === '学期') activeSemester = val;
+  renderAlbumGrid();
+});
 </script>
 </body>
 </html>
