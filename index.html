@@ -1591,48 +1591,159 @@
 // ===== DATA =====
 const ALBUMS = [
   {
-    id: 0, title: '春晓·四季之诗', grade: '1-2年级',
-    age: ['4-6岁','7-9岁'], grades: ['1年级','2年级'], themes: ['山水'],
-    semesters: ['上册'], school: '小学',
+    id: 0, title: '一年级上册', grade: '1年级',
+    grades: ['1年级'], semesters: ['上册'], school: '小学',
     img: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=300&h=300&fit=crop&auto=format',
     poems: [
-      { title: '春晓', author: '孟浩然', text: '春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。', learned: true },
-      { title: '咏柳', author: '贺知章', text: '碧玉妆成一树高，万条垂下绿丝绦。不知细叶谁裁出，二月春风似剪刀。', learned: true },
+      { title: '江南', author: '汉乐府', text: '江南可采莲，莲叶何田田，鱼戏莲叶间。鱼戏莲叶东，鱼戏莲叶西，鱼戏莲叶南，鱼戏莲叶北。', learned: false },
+    ]
+  },
+  {
+    id: 1, title: '一年级下册', grade: '1年级',
+    grades: ['1年级'], semesters: ['下册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '静夜思', author: '李白', text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。', learned: false },
+      { title: '池上', author: '白居易', text: '小娃撑小艇，偷采白莲回。不解藏踪迹，浮萍一道开。', learned: false },
+      { title: '小池', author: '杨万里', text: '泉眼无声惜细流，树阴照水爱晴柔。小荷才露尖尖角，早有蜻蜓立上头。', learned: false },
+    ]
+  },
+  {
+    id: 2, title: '二年级上册', grade: '2年级',
+    grades: ['2年级'], semesters: ['上册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1545038522-9bb451739ab9?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '登鹳雀楼', author: '王之涣', text: '白日依山尽，黄河入海流。欲穷千里目，更上一层楼。', learned: false },
+      { title: '望庐山瀑布', author: '李白', text: '日照香炉生紫烟，遥看瀑布挂前川。飞流直下三千尺，疑是银河落九天。', learned: false },
+      { title: '夜宿山寺', author: '李白', text: '危楼高百尺，手可摘星辰。不敢高声语，恐惊天上人。', learned: false },
+      { title: '敕勒歌', author: '北朝民歌', text: '敕勒川，阴山下。天似穹庐，笼盖四野。天苍苍，野茫茫，风吹草低见牛羊。', learned: false },
+    ]
+  },
+  {
+    id: 3, title: '二年级下册', grade: '2年级',
+    grades: ['2年级'], semesters: ['下册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '村居', author: '高鼎', text: '草长莺飞二月天，拂堤杨柳醉春烟。儿童散学归来早，忙趁东风放纸鸢。', learned: false },
+      { title: '咏柳', author: '贺知章', text: '碧玉妆成一树高，万条垂下绿丝绦。不知细叶谁裁出，二月春风似剪刀。', learned: false },
+      { title: '晓出净慈寺送林子方', author: '杨万里', text: '毕竟西湖六月中，风光不与四时同。接天莲叶无穷碧，映日荷花别样红。', learned: false },
       { title: '绝句', author: '杜甫', text: '两个黄鹂鸣翠柳，一行白鹭上青天。窗含西岭千秋雪，门泊东吴万里船。', learned: false },
     ]
   },
   {
-    id: 1, title: '静夜思·思乡情', grade: '3-4年级',
-    age: ['7-9岁'], grades: ['3年级','4年级'], themes: ['思乡'],
-    semesters: ['上册'], school: '小学',
+    id: 4, title: '三年级上册', grade: '3年级',
+    grades: ['3年级'], semesters: ['上册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1572940639050-49166eb37404?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '望洞庭', author: '刘禹锡', text: '湖光秋月两相和，潭面无风镜未磨。遥望洞庭山水翠，白银盘里一青螺。', learned: false },
+      { title: '山行', author: '杜牧', text: '远上寒山石径斜，白云深处有人家。停车坐爱枫林晚，霜叶红于二月花。', learned: false },
+      { title: '夜书所见', author: '叶绍翁', text: '萧萧梧叶送寒声，江上秋风动客情。知有儿童挑促织，夜深篱落一灯明。', learned: false },
+      { title: '鹿柴', author: '王维', text: '空山不见人，但闻人语响。返景入深林，复照青苔上。', learned: false },
+      { title: '望天门山', author: '李白', text: '天门中断楚江开，碧水东流至此回。两岸青山相对出，孤帆一片日边来。', learned: false },
+      { title: '饮湖上初晴后雨', author: '苏轼', text: '水光潋滟晴方好，山色空蒙雨亦奇。欲把西湖比西子，淡妆浓抹总相宜。', learned: false },
+    ]
+  },
+  {
+    id: 5, title: '三年级下册', grade: '3年级',
+    grades: ['3年级'], semesters: ['下册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '绝句', author: '杜甫', text: '迟日江山丽，春风花草香。泥融飞燕子，沙暖睡鸳鸯。', learned: false },
+      { title: '惠崇春江晚景', author: '苏轼', text: '竹外桃花三两枝，春江水暖鸭先知。蒌蒿满地芦芽短，正是河豚欲上时。', learned: false },
+      { title: '三衢道中', author: '曾几', text: '梅子黄时日日晴，小溪泛尽却山行。绿阴不减来时路，添得黄鹂四五声。', learned: false },
+      { title: '元日', author: '王安石', text: '爆竹声中一岁除，春风送暖入屠苏。千门万户曈曈日，总把新桃换旧符。', learned: false },
+      { title: '清明', author: '杜牧', text: '清明时节雨纷纷，路上行人欲断魂。借问酒家何处有，牧童遥指杏花村。', learned: false },
+      { title: '九月九日忆山东兄弟', author: '王维', text: '独在异乡为异客，每逢佳节倍思亲。遥知兄弟登高处，遍插茱萸少一人。', learned: false },
+    ]
+  },
+  {
+    id: 6, title: '四年级上册', grade: '4年级',
+    grades: ['4年级'], semesters: ['上册'], school: '小学',
     img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=300&h=300&fit=crop&auto=format',
     poems: [
-      { title: '静夜思', author: '李白', text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。', learned: true },
-      { title: '望庐山瀑布', author: '李白', text: '日照香炉生紫烟，遥看瀑布挂前川。飞流直下三千尺，疑是银河落九天。', learned: false },
+      { title: '暮江吟', author: '白居易', text: '一道残阳铺水中，半江瑟瑟半江红。可怜九月初三夜，露似真珠月似弓。', learned: false },
+      { title: '题西林壁', author: '苏轼', text: '横看成岭侧成峰，远近高低各不同。不识庐山真面目，只缘身在此山中。', learned: false },
+      { title: '雪梅', author: '卢梅坡', text: '梅雪争春未肯降，骚人阁笔费评章。梅须逊雪三分白，雪却输梅一段香。', learned: false },
+      { title: '凉州词', author: '王翰', text: '葡萄美酒夜光杯，欲饮琵琶马上催。醉卧沙场君莫笑，古来征战几人回。', learned: false },
+      { title: '出塞', author: '王昌龄', text: '秦时明月汉时关，万里长征人未还。但使龙城飞将在，不教胡马度阴山。', learned: false },
+      { title: '夏日绝句', author: '李清照', text: '生当作人杰，死亦为鬼雄。至今思项羽，不肯过江东。', learned: false },
     ]
   },
   {
-    id: 2, title: '三年级必背古诗', grade: '3年级',
-    age: ['7-9岁'], grades: ['3年级'], themes: ['节气','励志'],
-    semesters: ['下册'], school: '小学',
+    id: 7, title: '四年级下册', grade: '4年级',
+    grades: ['4年级'], semesters: ['下册'], school: '小学',
     img: 'https://images.unsplash.com/photo-1545038522-9bb451739ab9?w=300&h=300&fit=crop&auto=format',
     poems: [
-      { title: '早发白帝城', author: '李白', text: '朝辞白帝彩云间，千里江陵一日还。两岸猿声啼不住，轻舟已过万重山。', learned: false },
-      { title: '江雪', author: '柳宗元', text: '千山鸟飞绝，万径人踪灭。孤舟蓑笠翁，独钓寒江雪。', learned: false },
-      { title: '元日', author: '王安石', text: '爆竹声中一岁除，春风送暖入屠苏。千门万户曈曈日，总把新桃换旧符。', learned: false },
+      { title: '四时田园杂兴其二十五', author: '范成大', text: '梅子金黄杏子肥，麦花雪白菜花稀。日长篱落无人过，惟有蜻蜓蛱蝶飞。', learned: false },
+      { title: '宿新市徐公店', author: '杨万里', text: '篱落疏疏一径深，树头花落未成阴。儿童急走追黄蝶，飞入菜花无处寻。', learned: false },
+      { title: '清平乐·村居', author: '辛弃疾', text: '茅檐低小，溪上青青草。醉里吴音相媚好，白发谁家翁媪。大儿锄豆溪东，中儿正织鸡笼。最喜小儿亡赖，溪头卧剥莲蓬。', learned: false },
+      { title: '芙蓉楼送辛渐', author: '王昌龄', text: '寒雨连江夜入吴，平明送客楚山孤。洛阳亲友如相问，一片冰心在玉壶。', learned: false },
+      { title: '塞下曲', author: '卢纶', text: '月黑雁飞高，单于夜遁逃。欲将轻骑逐，大雪满弓刀。', learned: false },
+      { title: '墨梅', author: '王冕', text: '我家洗砚池头树，朵朵花开淡墨痕。不要人夸好颜色，只留清气满乾坤。', learned: false },
     ]
   },
   {
-    id: 3, title: '中秋咏月集', grade: '5-6年级',
-    age: ['10-12岁'], grades: ['5年级'], themes: ['节气','思乡'],
-    semesters: ['上册'], school: '小学',
+    id: 8, title: '五年级上册', grade: '5年级',
+    grades: ['5年级'], semesters: ['上册'], school: '小学',
     img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop&auto=format',
     poems: [
-      { title: '静夜思', author: '李白', text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。', learned: false },
-      { title: '水调歌头', author: '苏轼', text: '明月几时有？把酒问青天。不知天上宫阙，今夕是何年。我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间。', learned: false },
-      { title: '望月怀远', author: '张九龄', text: '海上生明月，天涯共此时。情人怨遥夜，竟夕起相思。', learned: false },
+      { title: '示儿', author: '陆游', text: '死去元知万事空，但悲不见九州同。王师北定中原日，家祭无忘告乃翁。', learned: false },
+      { title: '题临安邸', author: '林升', text: '山外青山楼外楼，西湖歌舞几时休。暖风熏得游人醉，直把杭州作汴州。', learned: false },
+      { title: '己亥杂诗', author: '龚自珍', text: '九州生气恃风雷，万马齐喑究可哀。我劝天公重抖擞，不拘一格降人材。', learned: false },
+      { title: '山居秋暝', author: '王维', text: '空山新雨后，天气晚来秋。明月松间照，清泉石上流。竹喧归浣女，莲动下渔舟。随意春芳歇，王孙自可留。', learned: false },
+      { title: '枫桥夜泊', author: '张继', text: '月落乌啼霜满天，江枫渔火对愁眠。姑苏城外寒山寺，夜半钟声到客船。', learned: false },
+      { title: '早春呈水部张十八员外', author: '韩愈', text: '天街小雨润如酥，草色遥看近却无。最是一年春好处，绝胜烟柳满皇都。', learned: false },
     ]
-  }
+  },
+  {
+    id: 9, title: '五年级下册', grade: '5年级',
+    grades: ['5年级'], semesters: ['下册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1572940639050-49166eb37404?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '四时田园杂兴其三十一', author: '范成大', text: '昼出耘田夜绩麻，村庄儿女各当家。童孙未解供耕织，也傍桑阴学种瓜。', learned: false },
+      { title: '稚子弄冰', author: '杨万里', text: '稚子金盆脱晓冰，彩丝穿取当银钲。敲成玉磬穿林响，忽作玻璃碎地声。', learned: false },
+      { title: '村晚', author: '雷震', text: '草满池塘水满陂，山衔落日浸寒漪。牧童归去横牛背，短笛无腔信口吹。', learned: false },
+      { title: '从军行', author: '王昌龄', text: '青海长云暗雪山，孤城遥望玉门关。黄沙百战穿金甲，不破楼兰终不还。', learned: false },
+      { title: '秋夜将晓出篱门迎凉有感', author: '陆游', text: '三万里河东入海，五千仞岳上摩天。遗民泪尽胡尘里，南望王师又一年。', learned: false },
+      { title: '闻官军收河南河北', author: '杜甫', text: '剑外忽传收蓟北，初闻涕泪满衣裳。却看妻子愁何在，漫卷诗书喜欲狂。白日放歌须纵酒，青春作伴好还乡。即从巴峡穿巫峡，便下襄阳向洛阳。', learned: false },
+    ]
+  },
+  {
+    id: 10, title: '六年级上册', grade: '6年级',
+    grades: ['6年级'], semesters: ['上册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '宿建德江', author: '孟浩然', text: '移舟泊烟渚，日暮客愁新。野旷天低树，江清月近人。', learned: false },
+      { title: '六月二十七日望湖楼醉书', author: '苏轼', text: '黑云翻墨未遮山，白雨跳珠乱入船。卷地风来忽吹散，望湖楼下水如天。', learned: false },
+      { title: '西江月·夜行黄沙道中', author: '辛弃疾', text: '明月别枝惊鹊，清风半夜鸣蝉。稻花香里说丰年，听取蛙声一片。七八个星天外，两三点雨山前。旧时茅店社林边，路转溪桥忽见。', learned: false },
+      { title: '浪淘沙', author: '刘禹锡', text: '九曲黄河万里沙，浪淘风簸自天涯。如今直上银河去，同到牵牛织女家。', learned: false },
+      { title: '江南春', author: '杜牧', text: '千里莺啼绿映红，水村山郭酒旗风。南朝四百八十寺，多少楼台烟雨中。', learned: false },
+      { title: '书湖阴先生壁', author: '王安石', text: '茅檐长扫净无苔，花木成畦手自栽。一水护田将绿绕，两山排闼送青来。', learned: false },
+    ]
+  },
+  {
+    id: 11, title: '六年级下册', grade: '6年级',
+    grades: ['6年级'], semesters: ['下册'], school: '小学',
+    img: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=300&h=300&fit=crop&auto=format',
+    poems: [
+      { title: '寒食', author: '韩翃', text: '春城无处不飞花，寒食东风御柳斜。日暮汉宫传蜡烛，轻烟散入五侯家。', learned: false },
+      { title: '迢迢牵牛星', author: '古诗十九首', text: '迢迢牵牛星，皎皎河汉女。纤纤擢素手，札札弄机杼。终日不成章，泣涕零如雨。河汉清且浅，相去复几许。盈盈一水间，脉脉不得语。', learned: false },
+      { title: '十五夜望月', author: '王建', text: '中庭地白树栖鸦，冷露无声湿桂花。今夜月明人尽望，不知秋思落谁家。', learned: false },
+      { title: '马诗', author: '李贺', text: '大漠沙如雪，燕山月似钩。何当金络脑，快走踏清秋。', learned: false },
+      { title: '石灰吟', author: '于谦', text: '千锤万凿出深山，烈火焚烧若等闲。粉骨碎身浑不怕，要留清白在人间。', learned: false },
+      { title: '竹石', author: '郑燮', text: '咬定青山不放松，立根原在破岩中。千磨万击还坚劲，任尔东西南北风。', learned: false },
+      { title: '采薇', author: '《诗经》', text: '昔我往矣，杨柳依依。今我来思，雨雪霏霏。', learned: false },
+      { title: '送元二使安西', author: '王维', text: '渭城朝雨浥轻尘，客舍青青柳色新。劝君更尽一杯酒，西出阳关无故人。', learned: false },
+      { title: '春夜喜雨', author: '杜甫', text: '好雨知时节，当春乃发生。随风潜入夜，润物细无声。野径云俱黑，江船火独明。晓看红湿处，花重锦官城。', learned: false },
+      { title: '早春呈水部张十八员外', author: '韩愈', text: '天街小雨润如酥，草色遥看近却无。最是一年春好处，绝胜烟柳满皇都。', learned: false },
+      { title: '江上渔者', author: '范仲淹', text: '江上往来人，但爱鲈鱼美。君看一叶舟，出没风波里。', learned: false },
+      { title: '泊船瓜洲', author: '王安石', text: '京口瓜洲一水间，钟山只隔数重山。春风又绿江南岸，明月何时照我还。', learned: false },
+      { title: '游园不值', author: '叶绍翁', text: '应怜屐齿印苍苔，小扣柴扉久不开。春色满园关不住，一枝红杏出墙来。', learned: false },
+      { title: '卜算子·送鲍浩然之浙东', author: '王观', text: '水是眼波横，山是眉峰聚。欲问行人去那边，眉眼盈盈处。才始送春归，又送君归去。若到江南赶上春，千万和春住。', learned: false },
+      { title: '浣溪沙', author: '苏轼', text: '山下兰芽短浸溪，松间沙路净无泥。萧萧暮雨子规啼。谁道人生无再少？门前流水尚能西！休将白发唱黄鸡。', learned: false },
+      { title: '清平乐', author: '黄庭坚', text: '春归何处？寂寞无行路。若有人知春去处，唤取归来同住。春无踪迹谁知？除非问取黄鹂。百啭无人能解，因风飞过蔷薇。', learned: false },
+    ]
+  },
 ];
 
 // album card images in home grid (index matches ALBUMS)
@@ -1641,56 +1752,103 @@ const ALBUM_CARD_IMGS = [
   'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=200&h=200&fit=crop&auto=format',
   'https://images.unsplash.com/photo-1545038522-9bb451739ab9?w=200&h=200&fit=crop&auto=format',
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1572940639050-49166eb37404?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1545038522-9bb451739ab9?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1572940639050-49166eb37404?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=200&h=200&fit=crop&auto=format',
+  'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=200&h=200&fit=crop&auto=format',
 ];
 
 let currentScript = null; // { title, author, text, goal, albumTitle, age }
 let currentAlbumId = 0;
 
 // ===== SCRIPT PANEL =====
-// 根据专辑年龄标签映射讲解层级
-// age: '4-6岁'→L1, '7-9岁'→L2, '10-12岁'→L3
+// 根据专辑年级映射讲解层级：1-2年级→L1, 3-4年级→L2, 5-6年级→L3
 function getLevel(age) {
   if (!age || age === '4-6岁') return 'L1';
   if (age === '7-9岁') return 'L2';
   return 'L3';
 }
+function getAlbumLevel(album) {
+  const grade = album.grades ? album.grades[0] : null;
+  if (!grade) return 'L1';
+  if (grade === '1年级' || grade === '2年级') return 'L1';
+  if (grade === '3年级' || grade === '4年级') return 'L2';
+  return 'L3';
+}
 
-// 分龄讲解数据：每首诗含L1/L2/L3三层，以及互动引导
+// 分龄讲解数据：每首诗含L1/L2/L3三层，以及互动引导（仅已生成资源的诗）
 const POEM_DATA = {
-  '春晓': {
-    author: '孟浩然', dynasty: '唐代',
+  '静夜思': {
+    author: '李白', dynasty: '唐代',
     authorIntro: {
-      L1: '这首诗的作者叫孟浩然，他住在山里，特别喜欢大自然，也很喜欢睡懒觉。',
-      L2: '作者孟浩然是唐代著名诗人，他一生没有做官，喜欢游山玩水、隐居自然，写了许多描写山水田园的诗。',
-      L3: '孟浩然，唐代山水田园诗派代表人物，与王维并称"王孟"。他一生布衣，仕途不顺，却以隐逸闲适的诗风享誉诗坛，诗风清淡自然。',
+      L1: '这首诗的作者叫李白，他是一个特别喜欢旅行的诗人，走了好多好多地方，写了很多美丽的诗。',
+      L2: '李白是唐代最著名的诗人之一，人称"诗仙"，他一生游历四方，写了很多浪漫大气的诗，《静夜思》是他最广为人知的一首。',
+      L3: '李白，字太白，号青莲居士，唐代浪漫主义诗人，被称为"诗仙"。他的诗想象奇特、气势豪放，与杜甫并称"李杜"，是中国诗歌史上最重要的诗人之一。',
     },
     context: {
-      L1: '有一个春天的早晨，孟浩然睡醒了，听到窗外好多小鸟在叫，就把这个美美的早晨写成了诗。',
-      L2: '这首诗是孟浩然在春日清晨醒来，听到鸟鸣、想到昨夜风雨，随手写下的即兴之作，记录了一个宁静美好的春晨。',
-      L3: '这首诗写于孟浩然隐居鹿门山期间，是他某个春日清晨醒来的即兴感悟。全诗不着痕迹，以轻描淡写展现惜春之情，是田园诗中的名篇。',
+      L1: '有一天晚上，李白在外地旅行，住在一个地方，看到窗外的月亮好亮，就想起了自己的家人，写了这首诗。',
+      L2: '李白在旅途中的一个秋夜，看到窗外月色如霜，勾起了对故乡的思念，写下了这首流传千古的小诗。',
+      L3: '《静夜思》约作于唐玄宗开元年间，李白旅居扬州时写就。全诗不假雕饰，以明月为媒介，将游子思乡的情感表达得真切感人，是古诗中最广为流传的名篇。',
     },
     L1: {
-      intro: '你听——这首诗在说一个春天的早晨，诗人睡得好香，都没发现天亮了。',
-      keyword: '"啼鸟"就是小鸟在叫，"花落"就是花瓣掉下来了。',
-      life: '就像你早上睡觉睡得很香，突然被小鸟叫声叫醒——是不是有点舍不得起床？',
-      back: '所以诗人说：春眠不觉晓，处处闻啼鸟。'
+      intro: '这首诗说的是晚上，诗人看到月亮很亮，地上白白的，像是下了霜，他好想家，好想爸爸妈妈。',
+      keyword: '"疑是地上霜"就是月光照在地上，白白的，诗人以为是霜；"故乡"就是诗人的老家。',
+      life: '你有没有想妈妈或者想家的感觉？睡不着的时候，抬头看看月亮，好像故乡也在望着你。',
+      back: '举头望明月，低头思故乡——抬起头看月亮，低下头想家了。'
     },
     L2: {
-      intro: '这首诗写春天早晨的样子。诗人孟浩然睡得太香，不知不觉天就亮了，醒来听到鸟叫，又想起昨夜的风雨。',
-      keyword: '"不觉晓"是不知不觉天就亮了；"啼鸟"是鸟儿啼叫；"花落知多少"，诗人不直接说花掉了，而是问了一个问题，让我们自己去感受。',
-      life: '这四句话有声音（鸟叫、风雨），有画面（落花），就像一首春天的小曲，轻轻唱给你听。',
-      back: '再听一遍：夜来风雨声，花落知多少。'
+      intro: '李白看到月光洒在地上，以为是霜，抬头一看，原来是明月。这一抬头、一低头，思乡的情感就出来了。',
+      keyword: '"疑是地上霜"中"疑"字很妙——不是肯定，是"好像""以为"，写出了半梦半醒的感觉；从"望明月"到"思故乡"，只用了低头抬头两个动作，情感却无限深。',
+      life: '诗人用月亮把眼前的景和心里的情连起来，这叫"借景抒情"——月亮是跳板，思乡是真心。',
+      back: '举头望明月，低头思故乡。'
     },
     L3: {
-      intro: '这首诗表面写春日好眠，实际流露出对春天的珍惜和淡淡惋惜。诗人没说一个"惜"字，却让人读出惜春之情。',
-      keyword: '"花落知多少"是全诗的情感落点——用问句代替感叹，留白给读者。前三句铺垫，最后一句点情，这是"以景带情"的经典写法。',
-      life: '孟浩然用听觉（啼鸟、风雨声）引出视觉（花落），层层递进，结构很精妙。',
-      back: '回到原诗：春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。'
+      intro: '《静夜思》的高明之处在于"疑""望""思"三个动词，把人从迷蒙中惊醒，到凝视明月，再到深深思乡，用最简单的字写出了最真实的情感转变。',
+      keyword: '"疑是地上霜"是视觉错觉，也是情绪酝酿；"举头""低头"对应"望月""思乡"，两个动作形成完整的情感弧线。全诗二十字，却有画面、有动作、有情感，浑然天成。',
+      life: '这首诗之所以广泛流传，是因为它触及了人类共同的情感——离家的孤独与对归处的渴望。越是简单的表达，越有穿越时空的力量。',
+      back: '感受：床前明月光，疑是地上霜。举头望明月，低头思故乡。'
     },
-    interact: { chat: '想不想跟孟浩然聊聊，问他昨晚睡得怎么样？', qa: '你有没有想问的？比如"花落了多少"或者"为什么不觉晓"？', recite: '想跟着读一遍吗？我来带你，一句一句来。' }
+    interact: { chat: '想不想问问李白，他想家的时候都想念什么？', qa: '有问题吗？比如"霜是什么"或"故乡在哪里"？', recite: '来，跟我读——床前明月光，疑是地上霜。' }
   },
-  '咏柳': {
-    author: '贺知章', dynasty: '唐代',
+  '望庐山瀑布': {
+    author: '李白', dynasty: '唐代',
+    authorIntro: {
+      L1: '这首诗的作者是李白，他超级喜欢旅游，看到很厉害的风景就写诗，他的诗写得特别夸张特别好玩！',
+      L2: '李白是唐代"诗仙"，他的诗想象力超强，喜欢用夸张的手法写壮阔的景色，《望庐山瀑布》就是其中的代表。',
+      L3: '李白以浪漫主义风格著称，善用夸张、想象与比喻。《望庐山瀑布》是他写景诗中的名篇，以天马行空的想象将庐山瀑布写得气势磅礴。',
+    },
+    context: {
+      L1: '李白有一次去庐山旅游，看到一个很高很高的瀑布，从山上哗哗流下来，他太激动了，以为是从天上流下来的银河！',
+      L2: '李白游览庐山时，被壮观的香炉峰瀑布震撼，日光照射水雾变成紫色，瀑布从高处飞泻而下，让诗人联想到了银河落下，写下了这首豪壮的观瀑诗。',
+      L3: '《望庐山瀑布》作于唐玄宗开元年间，李白游庐山时，面对香炉峰瀑布的壮美景色，以"飞流直下三千尺，疑是银河落九天"震烁古今，成为写瀑名句。',
+    },
+    L1: {
+      intro: '诗人李白站在远处，看到庐山上的瀑布，太高太壮观了！他觉得那瀑布是从天上的银河流下来的！',
+      keyword: '"紫烟"就是阳光照在水雾上变成的紫色雾气，好漂亮；"三千尺"是夸张，瀑布从很高很高的地方飞下来！',
+      life: '你见过大瀑布吗？哗哗的水从很高的地方流下来，震耳欲聋，溅起白色的水花！',
+      back: '飞流直下三千尺，疑是银河落九天！'
+    },
+    L2: {
+      intro: '这首诗写的是庐山瀑布的壮观：先写烟雾，再写高度，最后用"银河"比喻，层层递进，气势越来越大。',
+      keyword: '"飞流直下"写出了瀑布的速度感；"三千尺"是夸张，李白写诗就爱用夸张手法；"疑是银河落九天"把瀑布比作银河，想象力太厉害了！',
+      life: '李白用夸张和比喻写出了瀑布的气势。我们读这首诗，眼前好像真的看到了那个震撼的瀑布！',
+      back: '飞流直下三千尺，疑是银河落九天。'
+    },
+    L3: {
+      intro: '《望庐山瀑布》以四句写出瀑布的视觉冲击：烟雾→瀑布→高度→银河。最后的比喻将景物的壮美推向极致，"疑"字用得极妙，不确定中反而更显磅礴。',
+      keyword: '"飞流直下"是动态描写，写速度；"三千尺"是夸张，写高度；"疑是银河落九天"是比喻加想象，把人间景写成了天上景，这是李白最典型的浪漫主义手法。',
+      life: '李白的夸张不是胡说，而是有感情基础的夸张——被震撼了，才会觉得是银河落下来。情感驱动想象，这才是诗的本质。',
+      back: '感受那个震撼：飞流直下三千尺，疑是银河落九天。'
+    },
+    interact: { chat: '想不想问问李白，他当时看到瀑布时是什么感受？', qa: '有什么想问的吗？比如"银河是什么"？', recite: '来跟我读——飞流直下三千尺，疑是银河落九天。' }
+  }
+};
+
+// 年龄段标签
     authorIntro: {
       L1: '这首诗的作者叫贺知章，他是一个特别开朗爱笑的老爷爷，很喜欢和小朋友玩。',
       L2: '作者贺知章是唐代诗人，性格豁达爽朗，与李白是好朋友，人称"四明狂客"，晚年辞官回乡，写了很多轻快有趣的诗。',
@@ -1983,32 +2141,6 @@ const POEM_DATA = {
 const AGE_LABELS = { L1: '4-6岁·启蒙版', L2: '7-9岁·理解版', L3: '10-12岁·深度版' };
 const AGE_BADGE_CLASS = { L1: 'low', L2: 'mid', L3: 'high' };
 
-const POEM_INTROS = {
-  '春晓': { author: '孟浩然', intro: '这首诗是唐代诗人孟浩然的名作，写的是春天早晨醒来的所见所闻，语言简洁却意境深远。' },
-  '咏柳': { author: '贺知章', intro: '唐代诗人贺知章以柳树为题，描写早春时节柳树萌发的生机，将春风比作巧手的裁缝。' },
-  '绝句': { author: '杜甫', intro: '杜甫旅居成都时所作，描绘了草堂附近春日美景，色彩鲜明，动静相宜。' },
-  '静夜思': { author: '李白', intro: '这是李白最广为人知的思乡诗，短短二十字，写出了游子望月思乡的情感。' },
-  '望庐山瀑布': { author: '李白', intro: '李白描写庐山瀑布的壮观景象，用夸张的手法展现了大自然的磅礴气势。' },
-  '早发白帝城': { author: '李白', intro: '李白遇赦后乘船东下时所作，全诗充满轻快喜悦之情，一气呵成。' },
-  '江雪': { author: '柳宗元', intro: '柳宗元被贬永州时所作，以极简的笔墨勾勒出一幅寒江独钓图，寄托孤寂之情。' },
-  '元日': { author: '王安石', intro: '王安石描写除夕和新年的景象，借节日热闹景象表达了除旧布新的政治抱负。' },
-  '水调歌头': { author: '苏轼', intro: '苏轼中秋怀念弟弟苏辙所作，借明月抒发人生感慨，"但愿人长久"成为千古名句。' },
-  '望月怀远': { author: '张九龄', intro: '张九龄借望月抒怀，写对远方亲人的思念，语言典雅，情感真挚。' },
-};
-
-const POEM_EXPLANATIONS = {
-  '春晓': '春眠不觉晓——春天睡得香，不知不觉天就亮了。\n处处闻啼鸟——到处都能听到鸟儿在鸣叫。\n夜来风雨声——昨夜刮风下雨声音很大。\n花落知多少——不知道有多少花瓣飘落了呢。',
-  '咏柳': '碧玉妆成一树高——碧绿的玉石妆扮成高高的柳树。\n万条垂下绿丝绦——千万条柳枝垂挂下来像绿色的丝带。\n不知细叶谁裁出——不知道这纤细的叶子是谁剪裁出来的。\n二月春风似剪刀——原来是二月春风像剪刀一样灵巧。',
-  '绝句': '两个黄鹂鸣翠柳——两只黄鹂在翠绿的柳树上鸣叫。\n一行白鹭上青天——一行白鹭飞向湛蓝的天空。\n窗含西岭千秋雪——从窗户望去，西边山岭上积雪千年未融。\n门泊东吴万里船——门前停泊着来自东吴的万里远船。',
-  '静夜思': '床前明月光——床前洒满了明亮的月光。\n疑是地上霜——好像是地上铺了一层白霜。\n举头望明月——抬起头来望向那轮明月。\n低头思故乡——低下头来思念起遥远的故乡。',
-  '望庐山瀑布': '日照香炉生紫烟——阳光照射香炉峰，升起紫色的云烟。\n遥看瀑布挂前川——远远望去，瀑布像挂在山前的白练。\n飞流直下三千尺——水流飞泻直落三千尺。\n疑是银河落九天——好像是银河从天上倾泻而下。',
-  '早发白帝城': '朝辞白帝彩云间——清晨告别白帝城，彩云缭绕之间。\n千里江陵一日还——千里之遥的江陵，一天就能回到。\n两岸猿声啼不住——两岸猿猴的啼声不断。\n轻舟已过万重山——轻快的小船已经穿过了重重山峦。',
-  '江雪': '千山鸟飞绝——千山万岭不见一只飞鸟。\n万径人踪灭——千路万道不见一个人影。\n孤舟蓑笠翁——只有一叶孤舟上，坐着一位身披蓑衣戴着斗笠的老翁。\n独钓寒江雪——在风雪弥漫的江上独自垂钓。',
-  '元日': '爆竹声中一岁除——爆竹声中旧的一年过去了。\n春风送暖入屠苏——春风把温暖送来，人们喝着屠苏酒庆新年。\n千门万户曈曈日——千家万户迎来了新年第一轮红日。\n总把新桃换旧符——都用新的桃符替换了旧的桃符。',
-  '水调歌头': '明月几时有？把酒问青天——明月什么时候才有？举起酒杯问苍天。\n不知天上宫阙，今夕是何年——不知道天上的宫殿里，今晚是什么年月。\n我欲乘风归去——我想乘着风飞回天上。\n高处不胜寒——只怕高处太寒冷，难以承受。\n起舞弄清影，何似在人间——在月光下起舞，和自己的影子嬉戏，哪里比得上在人间呢。',
-  '望月怀远': '海上生明月，天涯共此时——大海上升起一轮明月，远在天涯的人们此刻共同仰望。\n情人怨遥夜，竟夕起相思——深情的人抱怨夜太漫长，整夜都在思念远方的人。',
-};
-
 function buildScriptHTML(script) {
   if (!script) return '<div style="color:var(--brown-mid);font-size:13px;text-align:center;padding:20px 0">暂无讲解内容</div>';
   const poemTitle = script.title.split(' — ')[0];
@@ -2236,7 +2368,7 @@ function renderAlbumGrid() {
       </div>
       <div class="album-card-info">
         <div class="album-card-title">${a.title}</div>
-        <div class="album-card-grade">${a.grade} · ${a.themes[0]}</div>
+        <div class="album-card-grade">${a.grade} · ${a.semesters[0]}</div>
       </div>
     </button>
   `).join('');
@@ -2370,13 +2502,17 @@ function confirmPush() {
   const album = ALBUMS[currentAlbumId];
   const poem = selectedPoemIdx >= 0 ? album.poems[selectedPoemIdx] : album.poems[0];
   const goal = selectedGoalEl || '熏听模式';
+  if (!POEM_DATA[poem.title]) {
+    showNoScriptToast(poem.title);
+    return;
+  }
   const title = poem.title + ' — ' + poem.author;
   const text = poem.text;
-  const albumAge = album.age[album.age.length - 1]; // 取最高年龄段作为讲解层级依据
-  pendingTask = { title, text, goal, albumTitle: album.title, age: albumAge };
-  currentScript = { title, text, goal, albumTitle: album.title, age: albumAge };
+  const albumLevel = getAlbumLevel(album); // 按年级推断讲解层级
+  pendingTask = { title, text, goal, albumTitle: album.title, age: albumLevel };
+  currentScript = { title, text, goal, albumTitle: album.title, age: albumLevel };
   if (autoPlayOn) {
-    triggerSpeaker(goal + ' · ' + album.title, title, text, albumAge);
+    triggerSpeaker(goal + ' · ' + album.title, title, text, albumLevel);
   } else {
     showPushedNotice(goal, album.title, title);
   }
