@@ -2440,6 +2440,7 @@ function triggerSpeaker(mode, title, poemText, age) {
 
     // 嵌套：interlude3 → remainingAfterKeyword
     if (isXunTing) {
+      // 熏听模式：跳过互动引导语，直接衔接生活联系
       remainingAfterMeaning.push(...remainingAfterKeyword);
     } else {
       remainingAfterMeaning.push(makeInterlude(interlude3Text, remainingAfterKeyword));
@@ -2447,6 +2448,13 @@ function triggerSpeaker(mode, title, poemText, age) {
 
     // 嵌套：interlude2 → remainingAfterMeaning
     if (isXunTing) {
+      // 熏听模式：大意讲完直接进关键词，加一句流畅过渡语
+      const bridge2 = level === 'L1'
+        ? '我们再来看看诗里几个特别有意思的词！'
+        : level === 'L2'
+        ? '接下来我们再细细品几个关键词——'
+        : '接下来我们深入看几个关键词和关键句——';
+      remainingAfterIntro.push({ text: bridge2, rate: 0.88, pitch: 1.05, label: 'bridge2' });
       remainingAfterIntro.push(...remainingAfterMeaning);
     } else {
       remainingAfterIntro.push(makeInterlude(interlude2Text, remainingAfterMeaning));
@@ -2454,6 +2462,13 @@ function triggerSpeaker(mode, title, poemText, age) {
 
     // 嵌套：interlude1 → remainingAfterIntro
     if (isXunTing) {
+      // 熏听模式：背景讲完直接进大意，加一句流畅过渡语
+      const bridge1 = level === 'L1'
+        ? '了解了这首诗的来历，我们来看看它到底在说什么吧！'
+        : level === 'L2'
+        ? '了解了背景，接下来我们一起来读懂这首诗——'
+        : '了解了创作背景，接下来我们深入走进这首诗——';
+      segments.push({ text: bridge1, rate: 0.88, pitch: 1.05, label: 'bridge1' });
       segments.push(...remainingAfterIntro);
     } else {
       segments.push(makeInterlude(interlude1Text, remainingAfterIntro));
