@@ -826,9 +826,11 @@
     margin-bottom: 6px;
     overflow-x: auto;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
   }
   .filter-row::-webkit-scrollbar { display: none; }
-  .filter-label { font-size: 11px; color: var(--brown-mid); min-width: 24px; flex-shrink: 0; }
+  .filter-label { font-size: 11px; color: var(--brown-mid); min-width: 28px; flex-shrink: 0; }
   .filter-chip {
     white-space: nowrap;
     padding: 3px 10px;
@@ -840,6 +842,9 @@
     color: var(--brown-mid);
     transition: all 0.2s;
     font-family: 'Noto Sans SC', sans-serif;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
   .filter-chip.active { background: var(--red); color: #fff; font-weight: 500; }
 
@@ -2194,7 +2199,7 @@ function goBack(screenId) {
 function setFilter(btn, group) {
   btn.closest('.filter-row').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
-  const val = btn.textContent;
+  const val = btn.textContent.trim();
   if (group === 'school') activeSchool = val;
   else if (group === 'grade') activeGrade = val;
   else if (group === 'semester') activeSemester = val;
