@@ -3127,8 +3127,8 @@ function sendQA() {
 }
 
 function processUserInput(q) {
-  qaContext.turns = (qaContext.turns || 0) + 1;
   clearIdleTimers(); // 用户真正发言，清除超时计时器
+  qaContext.turns = (qaContext.turns || 0) + 1;
   addBubble('user', q);
 
   const data = POEM_DATA[qaContext.poemTitle];
@@ -3560,93 +3560,76 @@ function _doStartMic() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition || micActive || !micShouldRestart) return;
 
-  micRecognition = new SpeechRecognition();
-  micRecognition.lang = 'zh-CN';
-  micRecognition.continuous = true;   // 持续监听，不会因为停顿自动停止
-  micRecognition.interimResults = true;
-  micRecognition.maxAlternatives = 1;
+  const rec = new SpeechRecognition();
+  micRecognition = rec;
+  rec.lang = 'zh-CN';
+  rec.continuous = false;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
 
-  let finalBuffer = '';
-  let silenceTimer = null;
-
-  function resetSilenceTimer() {
-    if (silenceTimer) clearTimeout(silenceTimer);
-    // 停顿 1.5 秒无新内容视为说完，自动发送
-    silenceTimer = setTimeout(() => {
-      const val = finalBuffer.trim() || document.getElementById('qaInput').value.trim();
-      if (val) {
-        document.getElementById('qaInput').value = val;
-        micShouldRestart = false;
-        if (micRecognition) try { micRecognition.stop(); } catch(e) {}
-      }
-    }, 1500);
-  }
-
-  micRecognition.onstart = () => {
+  rec.onstart = () => {
     micActive = true;
     micPermissionWarmed = true;
-    finalBuffer = '';
     document.getElementById('qaMicBtn').classList.add('listening');
     document.getElementById('qaMicBtn').style.animation = '';
     document.getElementById('qaMicStatus').textContent = '正在听，请说话…';
   };
 
-  micRecognition.onresult = (e) => {
+  rec.onresult = (e) => {
     let interim = '', final = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) final += e.results[i][0].transcript;
       else interim += e.results[i][0].transcript;
     }
     if (interim) {
-      document.getElementById('qaInput').value = finalBuffer + interim;
-      document.getElementById('qaMicStatus').textContent = '识别中：' + (finalBuffer + interim);
-      resetSilenceTimer();
+      document.getElementById('qaInput').value = interim;
+      document.getElementById('qaMicStatus').textContent = '识别中：' + interim;
     }
     if (final) {
-      finalBuffer += final;
-      document.getElementById('qaInput').value = finalBuffer;
-      document.getElementById('qaMicStatus').textContent = '识别中：' + finalBuffer;
-      resetSilenceTimer();
+      document.getElementById('qaInput').value = final;
+      document.getElementById('qaMicStatus').textContent = '✓ ' + final;
     }
   };
 
-  micRecognition.onend = () => {
+  rec.onend = () => {
     micActive = false;
-    if (silenceTimer) clearTimeout(silenceTimer);
     document.getElementById('qaMicBtn').classList.remove('listening');
     const val = document.getElementById('qaInput').value.trim();
     if (val) {
-      document.getElementById('qaInput').value = ''; // 先清空，防止 onend 重入时重复发送
+      document.getElementById('qaInput').value = '';
       document.getElementById('qaMicStatus').textContent = '';
-      stopMic();
+      // 不调 stopMic()，直接处理，避免破坏 micShouldRestart
+      micRecognition = null;
       processUserInput(val);
-    } else if (micShouldRestart) {
-      setTimeout(_doStartMic, 500);
+    } else if (micShouldRestart && rec === micRecognition) {
+      // 没听到内容，自动重启继续监听
+      micRecognition = null;
+      setTimeout(_doStartMic, 300);
     } else {
       document.getElementById('qaMicStatus').textContent = '';
     }
   };
 
-  micRecognition.onerror = (e) => {
+  rec.onerror = (e) => {
     micActive = false;
-    if (silenceTimer) clearTimeout(silenceTimer);
     document.getElementById('qaMicBtn').classList.remove('listening');
     if (e.error === 'not-allowed') {
       micShouldRestart = false;
       micPermissionWarmed = false;
       document.getElementById('qaMicStatus').textContent = '⚠️ 需要麦克风权限：点地址栏左侧🔒→网站权限→麦克风→允许';
-    } else if (e.error === 'no-speech') {
-      // 连续模式下 no-speech 不常见，onend 处理重启
     } else if (e.error === 'aborted') {
-      // 主动中止，不处理
+      // 主动中止，不重启
     } else {
-      document.getElementById('qaMicStatus').textContent = '出错(' + e.error + ')，请重试';
-      micShouldRestart = false;
+      // no-speech 等，静默重启
+      if (micShouldRestart && rec === micRecognition) {
+        micRecognition = null;
+        setTimeout(_doStartMic, 300);
+      }
     }
   };
 
   try {
-    micRecognition.start();
+    rec.start();
   } catch(err) {
     document.getElementById('qaMicStatus').textContent = '启动失败，请刷新页面后重试';
     micActive = false;
@@ -3656,11 +3639,12 @@ function _doStartMic() {
 
 function stopMic() {
   micShouldRestart = false;
-  if (micRecognition) {
-    try { micRecognition.stop(); } catch(e) {}
-    micRecognition = null;
-  }
+  const rec = micRecognition;
+  micRecognition = null;
   micActive = false;
+  if (rec) {
+    try { rec.stop(); } catch(e) {}
+  }
   document.getElementById('qaMicBtn').classList.remove('listening');
   document.getElementById('qaMicStatus').textContent = '';
 }
