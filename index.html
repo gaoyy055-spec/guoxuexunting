@@ -3204,10 +3204,11 @@ function processUserInput(q) {
         ? '还有其他问题吗？没有的话我们继续来学习这首诗吧～'
         : '还有其他问题吗？没有的话我们继续来学习吧！';
       if (qaContext.turns < maxTurns) {
-        // 回答后柔和追问一下
+        // 回答后柔和追问一下，并重置 idle timer 等待用户继续提问
         addBubble('ai', followUp);
         speakText(followUp, 0.88, () => {
           setTimeout(() => startMic(false), 400);
+          startIdleTimer(qaContext.midMode ? false : true); // 重置等待计时
         });
       } else {
         // 背诵积累达到3轮上限，引导背诵
@@ -3357,35 +3358,101 @@ function runReciteStage() {
   );
 }
 
+// 背诵阶段空闲计时器
+let reciteIdleTimer1 = null;
+let reciteIdleTimer2 = null;
+
+function clearReciteIdleTimers() {
+  if (reciteIdleTimer1) { clearTimeout(reciteIdleTimer1); reciteIdleTimer1 = null; }
+  if (reciteIdleTimer2) { clearTimeout(reciteIdleTimer2); reciteIdleTimer2 = null; }
+}
+
 function startReciteMic(expectedLine) {
   const clean = expectedLine.replace(/[，。？！\s]/g, '');
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    // 无语音识别，直接前进
     advanceReciteLine(true);
     return;
   }
 
-  const r = new SpeechRecognition();
-  r.lang = 'zh-CN'; r.continuous = false; r.interimResults = false;
-  document.getElementById('qaMicBtn').classList.add('listening');
-  document.getElementById('qaMicStatus').textContent = '请背出这一句…';
+  clearReciteIdleTimers();
+  let reciteAnswered = false; // 防止 idle timer 和 onresult 同时触发
 
-  r.onresult = (e) => {
-    const said = e.results[0][0].transcript.replace(/[，。？！\s]/g, '');
-    const correct = said.includes(clean) || clean.includes(said) || similarity(said, clean) > 0.6;
-    evaluateReciteLine(said, clean, correct);
-  };
-  r.onerror = () => {
+  // 当前背诵提示文字（用于10s后重复）
+  const currentHint = document.getElementById('qaHistory').lastElementChild
+    ? document.getElementById('qaHistory').lastElementChild.textContent : '';
+
+  var reciteMicRef = null; // 保存当前 recognition 实例
+
+  function doStart() {
+    if (reciteAnswered) return;
+    const r = new SpeechRecognition();
+    reciteMicRef = r;
+    r.lang = 'zh-CN'; r.continuous = false; r.interimResults = false;
+    document.getElementById('qaMicBtn').classList.add('listening');
+    document.getElementById('qaMicStatus').textContent = '请背出这一句…';
+
+    r.onresult = (e) => {
+      clearReciteIdleTimers();
+      reciteAnswered = true;
+      reciteMicRef = null;
+      const said = e.results[0][0].transcript.replace(/[，。？！\s]/g, '');
+      const correct = said.includes(clean) || clean.includes(said) || similarity(said, clean) > 0.6;
+      evaluateReciteLine(said, clean, correct);
+    };
+    r.onerror = () => {
+      document.getElementById('qaMicBtn').classList.remove('listening');
+      document.getElementById('qaMicStatus').textContent = '';
+      // 不跳过，靠 idle timer 处理
+    };
+    r.onend = () => {
+      document.getElementById('qaMicBtn').classList.remove('listening');
+      document.getElementById('qaMicStatus').textContent = '';
+      // 若用户还没回答且 idle timer 还在，重启监听继续等
+      if (!reciteAnswered && reciteMicRef === r) {
+        reciteMicRef = null;
+        setTimeout(doStart, 300);
+      }
+    };
+    r.start();
+  }
+
+  doStart();
+
+  // 10秒无回答：鼓励一次，再重新开麦
+  reciteIdleTimer1 = setTimeout(function() {
+    if (reciteAnswered) return;
+    const level = reciteState ? reciteState.level : 'L1';
+    const nudge = level === 'L1'
+      ? '没关系，慢慢想，你能背出来的！再试一次～'
+      : '别紧张，再想想，你可以的！';
+    // 停掉当前麦克风，说完鼓励语再重新开麦
+    if (reciteMicRef) { try { reciteMicRef.stop(); } catch(e) {} reciteMicRef = null; }
     document.getElementById('qaMicBtn').classList.remove('listening');
-    document.getElementById('qaMicStatus').textContent = '';
-    advanceReciteLine(true); // 出错就跳过
-  };
-  r.onend = () => {
-    document.getElementById('qaMicBtn').classList.remove('listening');
-    document.getElementById('qaMicStatus').textContent = '';
-  };
-  r.start();
+    addBubble('ai', nudge);
+    speakText(nudge, 0.9, function() {
+      if (!reciteAnswered) doStart();
+    });
+
+    // 再等10秒无回答：说出答案，往下走
+    reciteIdleTimer2 = setTimeout(function() {
+      if (reciteAnswered) return;
+      reciteAnswered = true;
+      clearReciteIdleTimers();
+      if (reciteMicRef) { try { reciteMicRef.stop(); } catch(e) {} reciteMicRef = null; }
+      document.getElementById('qaMicBtn').classList.remove('listening');
+      document.getElementById('qaMicStatus').textContent = '';
+      const level2 = reciteState ? reciteState.level : 'L1';
+      const cleanLine = expectedLine.replace(/[，。？！]/g, '');
+      const revealMsg = level2 === 'L1'
+        ? '没关系！这句是：' + cleanLine + '，跟我读一遍～'
+        : '答案是：' + cleanLine + '，记住它，我们继续。';
+      addBubble('ai', revealMsg);
+      speakText(cleanLine, 0.72, function() {
+        advanceReciteLine(true);
+      });
+    }, 10000);
+  }, 10000);
 }
 
 function similarity(a, b) {
@@ -3463,12 +3530,11 @@ let idleTimerFinal = false; // 记录当前 isFinal 值
 function startIdleTimer(isFinal) {
   clearIdleTimers();
   idleTimerFinal = isFinal;
-  console.log('[IdleTimer] startIdleTimer called, isFinal=', isFinal, 'time=', Date.now());
+  var turnsAtStart = qaContext.turns || 0; // 快照：启动时的 turns
 
   idleTimer1 = setTimeout(function() {
-    console.log('[IdleTimer] timer1 fired, turns=', qaContext.turns, 'time=', Date.now());
-    // turns 仍为 0 说明用户完全没开口
-    if (qaContext.turns > 0) { console.log('[IdleTimer] timer1: turns>0, abort'); return; }
+    // 如果计时器启动后 turns 没有增加，说明用户一直没开口
+    if ((qaContext.turns || 0) > turnsAtStart) return;
 
     var level = qaContext.level || 'L1';
     var nudgeMsg = level === 'L1'
@@ -3489,8 +3555,7 @@ function startIdleTimer(isFinal) {
     window.speechSynthesis.speak(utt);
 
     idleTimer2 = setTimeout(function() {
-      console.log('[IdleTimer] timer2 fired, turns=', qaContext.turns, 'idleTimerFinal=', idleTimerFinal, 'time=', Date.now());
-      if (qaContext.turns > 0) { console.log('[IdleTimer] timer2: turns>0, abort'); return; }
+      if ((qaContext.turns || 0) > turnsAtStart) return;
       stopMic();
       window.speechSynthesis.cancel();
 
@@ -3528,7 +3593,6 @@ function startIdleTimer(isFinal) {
 }
 
 function clearIdleTimers() {
-  console.log('[IdleTimer] clearIdleTimers called from:', new Error().stack.split('\n')[2]);
   if (idleTimer1) { clearTimeout(idleTimer1); idleTimer1 = null; }
   if (idleTimer2) { clearTimeout(idleTimer2); idleTimer2 = null; }
 }
