@@ -3146,8 +3146,7 @@ function processUserInput(q) {
   // 过滤无效输入（太短、噪声），不清 timer、不增加 turns
   if (!isRealQuestion(q)) return;
 
-  idleTimerAnswered = true; // 标记本轮已有有效回答
-  clearIdleTimers();
+  markIdleAnswered(); // 用户有真实输入，停止空闲计时
   qaContext.turns = (qaContext.turns || 0) + 1;
   addBubble('user', q);
 
@@ -3542,56 +3541,62 @@ let micActive = false;
 let micShouldRestart = false; // 标记是否应自动重启（应对 no-speech 自动关闭）
 
 // ===== 互动节点超时自动推进 =====
-let idleTimer1 = null;
-let idleTimer2 = null;
-let idleTimerFinal = false;
-let idleTimerAnswered = false; // 用户在本轮是否给出了有效回答
+let idleChecker = null;       // setInterval 句柄
+let idleStartTime = 0;        // 面板打开的时间戳
+let idleNudgeDone = false;    // 是否已经提醒过一次
+let idleFinal = false;        // 是否是最终互动节点
+let idleAnswered = false;     // 用户是否已输入（语音或手动）
+
+// 用户有任何真实输入时调用
+function markIdleAnswered() {
+  idleAnswered = true;
+  stopIdleChecker();
+}
+
+function stopIdleChecker() {
+  if (idleChecker) { clearInterval(idleChecker); idleChecker = null; }
+}
 
 function startIdleTimer(isFinal) {
-  clearIdleTimers();
-  idleTimerFinal = isFinal;
-  idleTimerAnswered = false;
+  stopIdleChecker();
+  idleStartTime = Date.now();
+  idleNudgeDone = false;
+  idleFinal = isFinal;
+  idleAnswered = false;
 
-  idleTimer1 = setTimeout(function() {
-    if (idleTimerAnswered) return;
-    if (!document.getElementById('qaPanel').classList.contains('visible')) return;
+  idleChecker = setInterval(function() {
+    if (idleAnswered) { stopIdleChecker(); return; }
 
-    // 停麦，播提醒
-    stopMic();
-    window.speechSynthesis.cancel();
-    var level = qaContext.level || 'L1';
-    var nudgeMsg = level === 'L1'
-      ? '小朋友，有什么想问的吗？不用紧张，想到什么就问什么～'
-      : level === 'L2'
-      ? '小朋友，有没有好奇的地方？大胆说出来！'
-      : '同学，有什么想探讨的吗？随时可以提问～';
-    addBubble('ai', nudgeMsg);
-    var utt = new SpeechSynthesisUtterance(nudgeMsg);
-    utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
-    var v = getChineseVoice(); if (v) utt.voice = v;
-    // 提醒播完后重新开麦继续等
-    utt.onend = function() {
-      if (!idleTimerAnswered) {
-        micPermissionWarmed = true; // 系统说话视为同等手势，直接开麦
-        micShouldRestart = true;
-        _doStartMic();
-      }
-    };
-    window.speechSynthesis.speak(utt);
+    var elapsed = Date.now() - idleStartTime;
 
-    idleTimer2 = setTimeout(function() {
-      if (idleTimerAnswered) return;
-      if (!document.getElementById('qaPanel').classList.contains('visible')) return;
-
-      // 停麦，自动推进
-      stopMic();
+    // 10秒：第一次提醒
+    if (!idleNudgeDone && elapsed >= 10000) {
+      idleNudgeDone = true;
+      idleStartTime = Date.now(); // 重置计时，再等10秒
+      var level = qaContext.level || 'L1';
+      var nudgeMsg = level === 'L1'
+        ? '小朋友，有什么想问的吗？不用紧张，想到什么就问什么～'
+        : level === 'L2' ? '小朋友，有没有好奇的地方？大胆说出来！'
+        : '同学，有什么想探讨的吗？随时可以提问～';
+      addBubble('ai', nudgeMsg);
       window.speechSynthesis.cancel();
+      var utt = new SpeechSynthesisUtterance(nudgeMsg);
+      utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
+      var v = getChineseVoice(); if (v) utt.voice = v;
+      window.speechSynthesis.speak(utt);
+      return;
+    }
+
+    // 提醒后再过10秒：自动推进
+    if (idleNudgeDone && elapsed >= 10000) {
+      stopIdleChecker();
+      window.speechSynthesis.cancel();
+      stopMic();
       var level2 = qaContext.level || 'L1';
-      if (idleTimerFinal) {
+      if (idleFinal) {
         var doneMsg = level2 === 'L1'
           ? '好啦，这首诗我们就学完啦！下次有问题随时来找我哦，拜拜～'
-          : level2 === 'L2'
-          ? '好，这首诗我们就到这里！有问题下次还可以继续探索，我们下次见！'
+          : level2 === 'L2' ? '好，这首诗我们就到这里！有问题下次还可以继续探索，我们下次见！'
           : '好，今天的学习就到这里！有任何想法欢迎下次继续交流，再见！';
         addBubble('ai', doneMsg);
         document.getElementById('qaPanel').classList.remove('visible');
@@ -3602,8 +3607,7 @@ function startIdleTimer(isFinal) {
       } else {
         var goOnMsg = level2 === 'L1'
           ? '没有问题的话我们继续学习吧，有问题随时叫我哦～'
-          : level2 === 'L2'
-          ? '好，我们接着往下走，有问题随时打断！'
+          : level2 === 'L2' ? '好，我们接着往下走，有问题随时打断！'
           : '好，我们继续。有问题随时可以提问。';
         addBubble('ai', goOnMsg);
         document.getElementById('qaPanel').classList.remove('visible');
@@ -3616,14 +3620,13 @@ function startIdleTimer(isFinal) {
         utt3.onerror = utt3.onend;
         window.speechSynthesis.speak(utt3);
       }
-    }, 10000);
-  }, 10000);
+    }
+  }, 500); // 每500ms检查一次
 }
 
-function clearIdleTimers() {
-  if (idleTimer1) { clearTimeout(idleTimer1); idleTimer1 = null; }
-  if (idleTimer2) { clearTimeout(idleTimer2); idleTimer2 = null; }
-}
+// 兼容旧调用
+function clearIdleTimers() { stopIdleChecker(); }
+
 
 function toggleMic() {
   micPermissionWarmed = true; // 用户手势，标记权限已预热
