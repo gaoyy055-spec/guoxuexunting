@@ -2545,6 +2545,7 @@ function showMidQAPanel(poemTitle, level, goal, nextSegments) {
     poemTitle, level, goal: goal || '', turns: 0, mode: 'normal', poetGreeted: false,
     midMode: true,
     onResume: () => {
+      clearIdleTimers();
       document.getElementById('qaPanel').classList.remove('visible');
       document.getElementById('qaHistory').innerHTML = '';
       isSpeaking = true;
@@ -2602,9 +2603,11 @@ function showMidQAPanel(poemTitle, level, goal, nextSegments) {
   ].map(s => `<button class="qa-suggest-chip" onclick="fillAndSend('${s}')">${s}</button>`).join('');
   panel.classList.add('visible');
   setTimeout(() => startMic(true), 600);
+  startIdleTimer(false); // 中间互动：10秒提醒+10秒自动继续
 }
 
 function stopSpeaker() {
+  clearIdleTimers();
   isSpeaking = false;
   pausedSegments = null;
   stopTTSKeepAlive();
@@ -3106,6 +3109,7 @@ function showQAPanel(poemTitle, level, goal) {
 
   // 讲解结束自动打开麦克风
   setTimeout(() => startMic(true), 600);
+  startIdleTimer(true); // 最终互动：10秒提醒+10秒结束
 }
 
 function fillAndSend(text) {
@@ -3123,6 +3127,7 @@ function sendQA() {
 }
 
 function processUserInput(q) {
+  clearIdleTimers(); // 用户开口，清除超时计时器
   qaContext.turns = (qaContext.turns || 0) + 1;
   addBubble('user', q);
 
@@ -3448,6 +3453,64 @@ function addBubble(type, text) {
 let micRecognition = null;
 let micActive = false;
 let micShouldRestart = false; // 标记是否应自动重启（应对 no-speech 自动关闭）
+
+// ===== 互动节点超时自动推进 =====
+// isFinal: true=最终互动（第4个节点），false=中间互动（前3个节点）
+let idleTimer1 = null;
+let idleTimer2 = null;
+
+function startIdleTimer(isFinal) {
+  clearIdleTimers();
+  // 第一次提醒：10秒无回应
+  idleTimer1 = setTimeout(() => {
+    if (qaContext.turns > 0) return; // 用户已经说话，不提醒
+    const level = qaContext.level || 'L1';
+    const nudgeMsg = level === 'L1'
+      ? '小朋友，有什么想问的吗？不用紧张，想到什么就问什么～'
+      : level === 'L2'
+      ? '小朋友，有没有好奇的地方？大胆说出来！'
+      : '同学，有什么想探讨的吗？随时可以提问～';
+    addBubble('ai', nudgeMsg);
+    speakText(nudgeMsg, 0.88, null);
+
+    // 第二次：再等10秒，自动继续
+    idleTimer2 = setTimeout(() => {
+      if (qaContext.turns > 0) return; // 用户已经说话，不继续
+      stopMic();
+      if (isFinal) {
+        // 最终互动：说结束语后关闭面板
+        const level2 = qaContext.level || 'L1';
+        const doneMsg = level2 === 'L1'
+          ? '好啦，这首诗我们就学完啦！下次有问题随时来找我哦，拜拜～'
+          : level2 === 'L2'
+          ? '好，这首诗我们就到这里！有问题下次还可以继续探索，我们下次见！'
+          : '好，今天的学习就到这里！有任何想法欢迎下次继续交流，再见！';
+        addBubble('ai', doneMsg);
+        speakText(doneMsg, 0.88, null);
+        document.getElementById('qaPanel').classList.remove('visible');
+      } else {
+        // 中间互动：继续后续讲解
+        const level2 = qaContext.level || 'L1';
+        const goOnMsg = level2 === 'L1'
+          ? '没有问题的话我们继续学习吧，有问题随时叫我哦～'
+          : level2 === 'L2'
+          ? '好，我们接着往下走，有问题随时打断！'
+          : '好，我们继续。有问题随时可以提问。';
+        addBubble('ai', goOnMsg);
+        speakText(goOnMsg, 0.88, () => {
+          if (qaContext.midMode && qaContext.onResume) {
+            qaContext.onResume();
+          }
+        });
+      }
+    }, 10000);
+  }, 10000);
+}
+
+function clearIdleTimers() {
+  if (idleTimer1) { clearTimeout(idleTimer1); idleTimer1 = null; }
+  if (idleTimer2) { clearTimeout(idleTimer2); idleTimer2 = null; }
+}
 
 function toggleMic() {
   micPermissionWarmed = true; // 用户手势，标记权限已预热
