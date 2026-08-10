@@ -3605,16 +3605,20 @@ function _idleAutoAdvance() {
   stopMic();
   var level = qaContext.level || 'L1';
   if (idleFinal) {
-    var doneMsg = level === 'L1'
-      ? '好啦，没有疑问的话，这首诗的学习就到这里啦！以后有问题随时来找我哦～'
-      : level === 'L2' ? '好，没有疑问的话，这首诗的学习就结束啦！有问题随时来找我！'
-      : '好，没有疑问的话，这首诗我们就学完了！以后有任何想法欢迎继续交流哦！';
-    addBubble('ai', doneMsg);
     document.getElementById('qaPanel').classList.remove('visible');
-    var utt2 = new SpeechSynthesisUtterance(doneMsg);
-    utt2.lang = 'zh-CN'; utt2.rate = 0.88; utt2.pitch = 1.05;
-    var v2 = getChineseVoice(); if (v2) utt2.voice = v2;
-    window.speechSynthesis.speak(utt2);
+    if (qaContext.goal === '背诵积累') {
+      startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
+    } else {
+      var doneMsg = level === 'L1'
+        ? '好啦，没有疑问的话，这首诗的学习就到这里啦！以后有问题随时来找我哦～'
+        : level === 'L2' ? '好，没有疑问的话，这首诗的学习就结束啦！有问题随时来找我！'
+        : '好，没有疑问的话，这首诗我们就学完了！以后有任何想法欢迎继续交流哦！';
+      addBubble('ai', doneMsg);
+      var utt2 = new SpeechSynthesisUtterance(doneMsg);
+      utt2.lang = 'zh-CN'; utt2.rate = 0.88; utt2.pitch = 1.05;
+      var v2 = getChineseVoice(); if (v2) utt2.voice = v2;
+      window.speechSynthesis.speak(utt2);
+    }
   } else {
     var goOnMsg = level === 'L1'
       ? '没有问题的话我们继续学习吧，有问题可以随时问我哦～'
