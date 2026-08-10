@@ -3463,10 +3463,12 @@ let idleTimerFinal = false; // 记录当前 isFinal 值
 function startIdleTimer(isFinal) {
   clearIdleTimers();
   idleTimerFinal = isFinal;
+  console.log('[IdleTimer] startIdleTimer called, isFinal=', isFinal, 'time=', Date.now());
 
   idleTimer1 = setTimeout(function() {
+    console.log('[IdleTimer] timer1 fired, turns=', qaContext.turns, 'time=', Date.now());
     // turns 仍为 0 说明用户完全没开口
-    if (qaContext.turns > 0) return;
+    if (qaContext.turns > 0) { console.log('[IdleTimer] timer1: turns>0, abort'); return; }
 
     var level = qaContext.level || 'L1';
     var nudgeMsg = level === 'L1'
@@ -3487,7 +3489,8 @@ function startIdleTimer(isFinal) {
     window.speechSynthesis.speak(utt);
 
     idleTimer2 = setTimeout(function() {
-      if (qaContext.turns > 0) return;
+      console.log('[IdleTimer] timer2 fired, turns=', qaContext.turns, 'idleTimerFinal=', idleTimerFinal, 'time=', Date.now());
+      if (qaContext.turns > 0) { console.log('[IdleTimer] timer2: turns>0, abort'); return; }
       stopMic();
       window.speechSynthesis.cancel();
 
@@ -3525,6 +3528,7 @@ function startIdleTimer(isFinal) {
 }
 
 function clearIdleTimers() {
+  console.log('[IdleTimer] clearIdleTimers called from:', new Error().stack.split('\n')[2]);
   if (idleTimer1) { clearTimeout(idleTimer1); idleTimer1 = null; }
   if (idleTimer2) { clearTimeout(idleTimer2); idleTimer2 = null; }
 }
