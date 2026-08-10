@@ -3127,8 +3127,8 @@ function sendQA() {
 }
 
 function processUserInput(q) {
-  clearIdleTimers(); // 用户开口，清除超时计时器
   qaContext.turns = (qaContext.turns || 0) + 1;
+  clearIdleTimers(); // 用户真正发言，清除超时计时器
   addBubble('user', q);
 
   const data = POEM_DATA[qaContext.poemTitle];
@@ -3461,9 +3461,9 @@ let idleTimer2 = null;
 
 function startIdleTimer(isFinal) {
   clearIdleTimers();
-  // 第一次提醒：10秒无回应
   idleTimer1 = setTimeout(() => {
-    if (qaContext.turns > 0) return; // 用户已经开口，跳过
+    // 只有 turns 仍为 0（用户完全没有发言）才提醒
+    if (qaContext.turns > 0) return;
     const level = qaContext.level || 'L1';
     const nudgeMsg = level === 'L1'
       ? '小朋友，有什么想问的吗？不用紧张，想到什么就问什么～'
@@ -3471,18 +3471,16 @@ function startIdleTimer(isFinal) {
       ? '小朋友，有没有好奇的地方？大胆说出来！'
       : '同学，有什么想探讨的吗？随时可以提问～';
     addBubble('ai', nudgeMsg);
-    stopMic(); // 停麦克风，避免与 TTS 冲突
+    stopMic();
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(nudgeMsg);
     utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
     const v = getChineseVoice(); if (v) utt.voice = v;
-    // TTS 播完后重新启动麦克风
     utt.onend = () => { if (qaContext.turns === 0) { micShouldRestart = true; _doStartMic(); } };
     window.speechSynthesis.speak(utt);
 
-    // 第二次：再等10秒，自动继续
     idleTimer2 = setTimeout(() => {
-      if (qaContext.turns > 0) return; // 用户已经开口，跳过
+      if (qaContext.turns > 0) return;
       stopMic();
       window.speechSynthesis.cancel();
       if (isFinal) {
@@ -3618,10 +3616,11 @@ function _doStartMic() {
     document.getElementById('qaMicBtn').classList.remove('listening');
     const val = document.getElementById('qaInput').value.trim();
     if (val) {
+      document.getElementById('qaInput').value = ''; // 先清空，防止 onend 重入时重复发送
       document.getElementById('qaMicStatus').textContent = '';
-      sendQA();
+      stopMic();
+      processUserInput(val);
     } else if (micShouldRestart) {
-      // 只有 micRecognition 还是当前实例时才重启（防止 stopMic 后触发）
       setTimeout(_doStartMic, 500);
     } else {
       document.getElementById('qaMicStatus').textContent = '';
