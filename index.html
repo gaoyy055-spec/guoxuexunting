@@ -2602,6 +2602,9 @@ function showMidQAPanel(poemTitle, level, goal, nextSegments) {
     '为什么这样写？',
   ].map(s => `<button class="qa-suggest-chip" onclick="fillAndSend('${s}')">${s}</button>`).join('');
   panel.classList.add('visible');
+  isSpeaking = false; // 停止 wakeListener 循环，QA 阶段不再需要唤醒词监听
+  stopWakeListener();
+  stopTTSKeepAlive();
   setTimeout(() => startMic(true), 600);
   startIdleTimer(false); // 中间互动：10秒提醒+10秒自动继续
 }
@@ -3107,7 +3110,9 @@ function showQAPanel(poemTitle, level, goal) {
 
   panel.classList.add('visible');
 
-  // 讲解结束自动打开麦克风
+  isSpeaking = false; // 停止 wakeListener 循环
+  stopWakeListener();
+  stopTTSKeepAlive();
   setTimeout(() => startMic(true), 600);
   startIdleTimer(true); // 最终互动：10秒提醒+10秒结束
 }
