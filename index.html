@@ -3458,56 +3458,63 @@ let micShouldRestart = false; // 标记是否应自动重启（应对 no-speech 
 // isFinal: true=最终互动（第4个节点），false=中间互动（前3个节点）
 let idleTimer1 = null;
 let idleTimer2 = null;
+let idleTimerFinal = false; // 记录当前 isFinal 值
 
 function startIdleTimer(isFinal) {
   clearIdleTimers();
-  idleTimer1 = setTimeout(() => {
-    // 只有 turns 仍为 0（用户完全没有发言）才提醒
+  idleTimerFinal = isFinal;
+
+  idleTimer1 = setTimeout(function() {
+    // turns 仍为 0 说明用户完全没开口
     if (qaContext.turns > 0) return;
-    const level = qaContext.level || 'L1';
-    const nudgeMsg = level === 'L1'
+
+    var level = qaContext.level || 'L1';
+    var nudgeMsg = level === 'L1'
       ? '小朋友，有什么想问的吗？不用紧张，想到什么就问什么～'
       : level === 'L2'
       ? '小朋友，有没有好奇的地方？大胆说出来！'
       : '同学，有什么想探讨的吗？随时可以提问～';
+
     addBubble('ai', nudgeMsg);
     stopMic();
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(nudgeMsg);
+    var utt = new SpeechSynthesisUtterance(nudgeMsg);
     utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
-    const v = getChineseVoice(); if (v) utt.voice = v;
-    utt.onend = () => { if (qaContext.turns === 0) { micShouldRestart = true; _doStartMic(); } };
+    var v = getChineseVoice(); if (v) utt.voice = v;
+    utt.onend = function() {
+      if (qaContext.turns === 0) { micShouldRestart = true; _doStartMic(); }
+    };
     window.speechSynthesis.speak(utt);
 
-    idleTimer2 = setTimeout(() => {
+    idleTimer2 = setTimeout(function() {
       if (qaContext.turns > 0) return;
       stopMic();
       window.speechSynthesis.cancel();
-      if (isFinal) {
-        const level2 = qaContext.level || 'L1';
-        const doneMsg = level2 === 'L1'
+
+      var level2 = qaContext.level || 'L1';
+      if (idleTimerFinal) {
+        var doneMsg = level2 === 'L1'
           ? '好啦，这首诗我们就学完啦！下次有问题随时来找我哦，拜拜～'
           : level2 === 'L2'
           ? '好，这首诗我们就到这里！有问题下次还可以继续探索，我们下次见！'
           : '好，今天的学习就到这里！有任何想法欢迎下次继续交流，再见！';
         addBubble('ai', doneMsg);
-        const utt2 = new SpeechSynthesisUtterance(doneMsg);
+        var utt2 = new SpeechSynthesisUtterance(doneMsg);
         utt2.lang = 'zh-CN'; utt2.rate = 0.88; utt2.pitch = 1.05;
-        const v2 = getChineseVoice(); if (v2) utt2.voice = v2;
+        var v2 = getChineseVoice(); if (v2) utt2.voice = v2;
         window.speechSynthesis.speak(utt2);
         document.getElementById('qaPanel').classList.remove('visible');
       } else {
-        const level2 = qaContext.level || 'L1';
-        const goOnMsg = level2 === 'L1'
+        var goOnMsg = level2 === 'L1'
           ? '没有问题的话我们继续学习吧，有问题随时叫我哦～'
           : level2 === 'L2'
           ? '好，我们接着往下走，有问题随时打断！'
           : '好，我们继续。有问题随时可以提问。';
         addBubble('ai', goOnMsg);
-        const utt3 = new SpeechSynthesisUtterance(goOnMsg);
+        var utt3 = new SpeechSynthesisUtterance(goOnMsg);
         utt3.lang = 'zh-CN'; utt3.rate = 0.88; utt3.pitch = 1.05;
-        const v3 = getChineseVoice(); if (v3) utt3.voice = v3;
-        utt3.onend = () => {
+        var v3 = getChineseVoice(); if (v3) utt3.voice = v3;
+        utt3.onend = function() {
           if (qaContext.midMode && qaContext.onResume) qaContext.onResume();
         };
         utt3.onerror = utt3.onend;
