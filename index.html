@@ -3205,10 +3205,7 @@ function processUserInput(q) {
         return;
       }
       // 最终互动：结束或进入背诵
-      if (qaContext.goal === '背诵积累') {
-        startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
-      } else {
-        const closeMsg = getAgeClosingLine(qaContext.level);
+      if (qaContext.goal.startsWith('背诵积累')) {
         addBubble('ai', closeMsg);
         speakText(closeMsg, 0.88);
       }
@@ -3218,7 +3215,7 @@ function processUserInput(q) {
     const answer = getQAAnswer(qaContext.poemTitle, q);
     addBubble('ai', answer);
 
-    const maxTurns = qaContext.goal === '背诵积累' ? 3 : 999;
+    const maxTurns = qaContext.goal.startsWith('背诵积累') ? 3 : 999;
 
     speakText(answer, 0.85, () => {
       const followUp = qaContext.level === 'L1'
@@ -3303,7 +3300,7 @@ function startReciteSession(poemTitle, level, goal) {
 
   const intro = level === 'L1'
     ? '讲解完啦！接下来我们来试试一起读这首诗，别着急，跟着我一句一句来～'
-    : goal === '背诵积累'
+    : goal.startsWith('背诵积累')
     ? '讲解完啦！接下来我们来试试背一背这首诗，别担心，我们一步一步慢慢来～'
     : '好啦，接下来我们来轻松地背一背这首诗，你不用担心，我会一直在旁边帮你！';
 
@@ -3519,7 +3516,7 @@ function finishRecite() {
   const title = reciteState.poemTitle;
   const msg = level === 'L1'
     ? '哇！你把《' + title + '》背完啦！真了不起！'
-    : goal === '背诵积累'
+    : goal.startsWith('背诵积累')
     ? '恭喜！《' + title + '》完整背诵成功！继续积累，你会越来越厉害的！'
     : '太好了！《' + title + '》你已经能背出来了，明天再复习一遍就彻底记住了！';
 
@@ -3606,8 +3603,7 @@ function _idleAutoAdvance() {
   var level = qaContext.level || 'L1';
   if (idleFinal) {
     document.getElementById('qaPanel').classList.remove('visible');
-    if (qaContext.goal === '背诵积累') {
-      startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
+    if (qaContext.goal.startsWith('背诵积累')) {
     } else {
       var doneMsg = level === 'L1'
         ? '好啦，没有疑问的话，这首诗的学习就到这里啦！以后有问题随时来找我哦～'
