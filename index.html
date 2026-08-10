@@ -3541,10 +3541,11 @@ let micActive = false;
 let micShouldRestart = false; // 标记是否应自动重启（应对 no-speech 自动关闭）
 
 // ===== 互动节点超时自动推进 =====
-let idleChecker = null;       // setTimeout 句柄
-let idleNudgeDone = false;    // 是否已经提醒过一次
-let idleFinal = false;        // 是否是最终互动节点
-let idleAnswered = false;     // 用户是否已输入（语音或手动）
+let idleChecker = null;
+let idleTimer1 = null; // 第一阶段10秒提醒
+let idleTimer2 = null; // 第二阶段10秒推进
+let idleFinal = false;
+let idleAnswered = false;
 
 // 用户有任何真实输入时调用
 function markIdleAnswered() {
@@ -3554,42 +3555,41 @@ function markIdleAnswered() {
 
 function stopIdleChecker() {
   if (idleChecker) { clearTimeout(idleChecker); idleChecker = null; }
+  if (idleTimer1) { clearTimeout(idleTimer1); idleTimer1 = null; console.log('[idleTimer] cleared timer1'); }
+  if (idleTimer2) { clearTimeout(idleTimer2); idleTimer2 = null; console.log('[idleTimer] cleared timer2'); }
 }
 
 function startIdleTimer(isFinal) {
   stopIdleChecker();
-  idleNudgeDone = false;
   idleFinal = isFinal;
   idleAnswered = false;
 
-  // 第一阶段：10秒后提醒
-  idleChecker = setTimeout(function() {
-    idleChecker = null;
+  console.log('[idleTimer] started, isFinal=', isFinal, new Date().toISOString());
+
+  // 第一阶段：10秒后发提醒
+  idleTimer1 = setTimeout(function() {
+    idleTimer1 = null;
+    console.log('[idleTimer] phase1 fired, idleAnswered=', idleAnswered, new Date().toISOString());
     if (idleAnswered) return;
 
-    idleNudgeDone = true;
     var level = qaContext.level || 'L1';
     var nudgeMsg = level === 'L1'
       ? '小朋友，有什么想问的吗？不管什么问题，都可以说出来哦～'
       : level === 'L2' ? '小朋友，有没有好奇的地方？有问题大胆提出来吧！'
       : '同学，这里有没有什么疑问呀？随时可以问我哦～';
     addBubble('ai', nudgeMsg);
-    window.speechSynthesis.cancel();
     var utt = new SpeechSynthesisUtterance(nudgeMsg);
     utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
     var v = getChineseVoice(); if (v) utt.voice = v;
-
-    // 第二阶段：提醒播完后再等10秒自动推进
-    utt.onend = utt.onerror = function() {
-      if (idleAnswered) return;
-      idleChecker = setTimeout(function() {
-        idleChecker = null;
-        if (idleAnswered) return;
-        _idleAutoAdvance();
-      }, 10000);
-    };
-
     window.speechSynthesis.speak(utt);
+
+    // 第二阶段：固定再等10秒，不依赖TTS onend
+    idleTimer2 = setTimeout(function() {
+      idleTimer2 = null;
+      console.log('[idleTimer] phase2 fired, idleAnswered=', idleAnswered, new Date().toISOString());
+      if (idleAnswered) return;
+      _idleAutoAdvance();
+    }, 10000);
   }, 10000);
 }
 
