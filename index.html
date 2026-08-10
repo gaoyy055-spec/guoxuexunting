@@ -3678,7 +3678,7 @@ function _doStartMic() {
   const rec = new SpeechRecognition();
   micRecognition = rec;
   rec.lang = 'zh-CN';
-  rec.continuous = false;
+  rec.continuous = true;
   rec.interimResults = true;
   rec.maxAlternatives = 1;
 
@@ -3699,28 +3699,35 @@ function _doStartMic() {
       else interim += e.results[i][0].transcript;
     }
     if (interim) {
-      // interim 只更新状态栏，不写入 qaInput，避免 onend 误判为用户输入
       document.getElementById('qaMicStatus').textContent = '识别中：' + interim;
     }
     if (final) {
-      recFinalResult = final; // 记录 final 结果
+      recFinalResult = final;
       document.getElementById('qaInput').value = final;
       document.getElementById('qaMicStatus').textContent = '✓ ' + final;
+      // continuous模式下final结果出来就直接提交，不等onend
+      micRecognition = null;
+      micShouldRestart = false;
+      try { rec.stop(); } catch(e) {}
+      document.getElementById('qaInput').value = '';
+      document.getElementById('qaMicStatus').textContent = '';
+      processUserInput(final.trim());
     }
   };
 
   rec.onend = () => {
     micActive = false;
     document.getElementById('qaMicBtn').classList.remove('listening');
-    const val = recFinalResult.trim(); // 只用 final 结果，不读 qaInput
-    recFinalResult = ''; // 重置
+    const val = recFinalResult.trim();
+    recFinalResult = '';
     if (val) {
+      // continuous模式已在onresult处理，这里只处理兜底情况
       document.getElementById('qaInput').value = '';
       document.getElementById('qaMicStatus').textContent = '';
       micRecognition = null;
       processUserInput(val);
     } else if (micShouldRestart && rec === micRecognition) {
-      // 没听到内容，自动重启继续监听
+      // no-speech后自动重启
       micRecognition = null;
       setTimeout(_doStartMic, 300);
     } else {
