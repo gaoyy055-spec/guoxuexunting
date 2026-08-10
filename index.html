@@ -3463,7 +3463,7 @@ function startIdleTimer(isFinal) {
   clearIdleTimers();
   // 第一次提醒：10秒无回应
   idleTimer1 = setTimeout(() => {
-    if (qaContext.turns > 0) return; // 用户已经说话，不提醒
+    if (qaContext.turns > 0) return; // 用户已经开口，跳过
     const level = qaContext.level || 'L1';
     const nudgeMsg = level === 'L1'
       ? '小朋友，有什么想问的吗？不用紧张，想到什么就问什么～'
@@ -3471,20 +3471,21 @@ function startIdleTimer(isFinal) {
       ? '小朋友，有没有好奇的地方？大胆说出来！'
       : '同学，有什么想探讨的吗？随时可以提问～';
     addBubble('ai', nudgeMsg);
-    // 停掉麦克风再 speak，避免 continuous 模式下 cancel() 冲突
-    stopMic();
+    stopMic(); // 停麦克风，避免与 TTS 冲突
+    window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(nudgeMsg);
     utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
     const v = getChineseVoice(); if (v) utt.voice = v;
-    window.speechSynthesis.cancel();
+    // TTS 播完后重新启动麦克风
+    utt.onend = () => { if (qaContext.turns === 0) { micShouldRestart = true; _doStartMic(); } };
     window.speechSynthesis.speak(utt);
 
     // 第二次：再等10秒，自动继续
     idleTimer2 = setTimeout(() => {
-      if (qaContext.turns > 0) return; // 用户已经说话，不继续
+      if (qaContext.turns > 0) return; // 用户已经开口，跳过
       stopMic();
+      window.speechSynthesis.cancel();
       if (isFinal) {
-        // 最终互动：说结束语后关闭面板
         const level2 = qaContext.level || 'L1';
         const doneMsg = level2 === 'L1'
           ? '好啦，这首诗我们就学完啦！下次有问题随时来找我哦，拜拜～'
@@ -3495,11 +3496,9 @@ function startIdleTimer(isFinal) {
         const utt2 = new SpeechSynthesisUtterance(doneMsg);
         utt2.lang = 'zh-CN'; utt2.rate = 0.88; utt2.pitch = 1.05;
         const v2 = getChineseVoice(); if (v2) utt2.voice = v2;
-        window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utt2);
         document.getElementById('qaPanel').classList.remove('visible');
       } else {
-        // 中间互动：继续后续讲解
         const level2 = qaContext.level || 'L1';
         const goOnMsg = level2 === 'L1'
           ? '没有问题的话我们继续学习吧，有问题随时叫我哦～'
@@ -3511,12 +3510,9 @@ function startIdleTimer(isFinal) {
         utt3.lang = 'zh-CN'; utt3.rate = 0.88; utt3.pitch = 1.05;
         const v3 = getChineseVoice(); if (v3) utt3.voice = v3;
         utt3.onend = () => {
-          if (qaContext.midMode && qaContext.onResume) {
-            qaContext.onResume();
-          }
+          if (qaContext.midMode && qaContext.onResume) qaContext.onResume();
         };
         utt3.onerror = utt3.onend;
-        window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utt3);
       }
     }, 10000);
@@ -3625,7 +3621,7 @@ function _doStartMic() {
       document.getElementById('qaMicStatus').textContent = '';
       sendQA();
     } else if (micShouldRestart) {
-      document.getElementById('qaMicStatus').textContent = '没听到，请继续说…';
+      // 只有 micRecognition 还是当前实例时才重启（防止 stopMic 后触发）
       setTimeout(_doStartMic, 500);
     } else {
       document.getElementById('qaMicStatus').textContent = '';
@@ -3661,8 +3657,9 @@ function _doStartMic() {
 
 function stopMic() {
   micShouldRestart = false;
-  if (micRecognition && micActive) {
+  if (micRecognition) {
     try { micRecognition.stop(); } catch(e) {}
+    micRecognition = null;
   }
   micActive = false;
   document.getElementById('qaMicBtn').classList.remove('listening');
