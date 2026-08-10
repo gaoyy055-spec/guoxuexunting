@@ -3582,6 +3582,8 @@ function _doStartMic() {
     document.getElementById('qaMicStatus').textContent = '正在听，请说话…';
   };
 
+  let recFinalResult = ''; // 只收集 final 结果，不污染 qaInput
+
   rec.onresult = (e) => {
     let interim = '', final = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -3589,10 +3591,11 @@ function _doStartMic() {
       else interim += e.results[i][0].transcript;
     }
     if (interim) {
-      document.getElementById('qaInput').value = interim;
+      // interim 只更新状态栏，不写入 qaInput，避免 onend 误判为用户输入
       document.getElementById('qaMicStatus').textContent = '识别中：' + interim;
     }
     if (final) {
+      recFinalResult = final; // 记录 final 结果
       document.getElementById('qaInput').value = final;
       document.getElementById('qaMicStatus').textContent = '✓ ' + final;
     }
@@ -3601,11 +3604,11 @@ function _doStartMic() {
   rec.onend = () => {
     micActive = false;
     document.getElementById('qaMicBtn').classList.remove('listening');
-    const val = document.getElementById('qaInput').value.trim();
+    const val = recFinalResult.trim(); // 只用 final 结果，不读 qaInput
+    recFinalResult = ''; // 重置
     if (val) {
       document.getElementById('qaInput').value = '';
       document.getElementById('qaMicStatus').textContent = '';
-      // 不调 stopMic()，直接处理，避免破坏 micShouldRestart
       micRecognition = null;
       processUserInput(val);
     } else if (micShouldRestart && rec === micRecognition) {
