@@ -3541,8 +3541,7 @@ let micActive = false;
 let micShouldRestart = false; // 标记是否应自动重启（应对 no-speech 自动关闭）
 
 // ===== 互动节点超时自动推进 =====
-let idleChecker = null;       // setInterval 句柄
-let idleStartTime = 0;        // 面板打开的时间戳
+let idleChecker = null;       // setTimeout 句柄
 let idleNudgeDone = false;    // 是否已经提醒过一次
 let idleFinal = false;        // 是否是最终互动节点
 let idleAnswered = false;     // 用户是否已输入（语音或手动）
@@ -3554,74 +3553,78 @@ function markIdleAnswered() {
 }
 
 function stopIdleChecker() {
-  if (idleChecker) { clearInterval(idleChecker); idleChecker = null; }
+  if (idleChecker) { clearTimeout(idleChecker); idleChecker = null; }
 }
 
 function startIdleTimer(isFinal) {
   stopIdleChecker();
-  idleStartTime = Date.now();
   idleNudgeDone = false;
   idleFinal = isFinal;
   idleAnswered = false;
 
-  idleChecker = setInterval(function() {
-    if (idleAnswered) { stopIdleChecker(); return; }
+  // 第一阶段：10秒后提醒
+  idleChecker = setTimeout(function() {
+    idleChecker = null;
+    if (idleAnswered) return;
 
-    var elapsed = Date.now() - idleStartTime;
+    idleNudgeDone = true;
+    var level = qaContext.level || 'L1';
+    var nudgeMsg = level === 'L1'
+      ? '小朋友，有什么想问的吗？不管什么问题，都可以说出来哦～'
+      : level === 'L2' ? '小朋友，有没有好奇的地方？有问题大胆提出来吧！'
+      : '同学，这里有没有什么疑问呀？随时可以问我哦～';
+    addBubble('ai', nudgeMsg);
+    window.speechSynthesis.cancel();
+    var utt = new SpeechSynthesisUtterance(nudgeMsg);
+    utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
+    var v = getChineseVoice(); if (v) utt.voice = v;
 
-    // 10秒：第一次提醒
-    if (!idleNudgeDone && elapsed >= 10000) {
-      idleNudgeDone = true;
-      idleStartTime = Date.now(); // 重置计时，再等10秒
-      var level = qaContext.level || 'L1';
-      var nudgeMsg = level === 'L1'
-        ? '小朋友，有什么想问的吗？不管什么问题，都可以说出来哦～'
-        : level === 'L2' ? '小朋友，有没有好奇的地方？有问题大胆提出来吧！'
-        : '同学，这里有没有什么疑问呀？随时可以问我哦～';
-      addBubble('ai', nudgeMsg);
-      window.speechSynthesis.cancel();
-      var utt = new SpeechSynthesisUtterance(nudgeMsg);
-      utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
-      var v = getChineseVoice(); if (v) utt.voice = v;
-      window.speechSynthesis.speak(utt);
-      return;
-    }
+    // 第二阶段：提醒播完后再等10秒自动推进
+    utt.onend = utt.onerror = function() {
+      if (idleAnswered) return;
+      idleChecker = setTimeout(function() {
+        idleChecker = null;
+        if (idleAnswered) return;
+        _idleAutoAdvance();
+      }, 10000);
+    };
 
-    // 提醒后再过10秒：自动推进
-    if (idleNudgeDone && elapsed >= 10000) {
-      stopIdleChecker();
-      window.speechSynthesis.cancel();
-      stopMic();
-      var level2 = qaContext.level || 'L1';
-      if (idleFinal) {
-        var doneMsg = level2 === 'L1'
-          ? '好啦，没有疑问的话，这首诗的学习就到这里啦！以后有问题随时来找我哦～'
-          : level2 === 'L2' ? '好，没有疑问的话，这首诗的学习就结束啦！有问题随时来找我！'
-          : '好，没有疑问的话，这首诗我们就学完了！以后有任何想法欢迎继续交流哦！';
-        addBubble('ai', doneMsg);
-        document.getElementById('qaPanel').classList.remove('visible');
-        var utt2 = new SpeechSynthesisUtterance(doneMsg);
-        utt2.lang = 'zh-CN'; utt2.rate = 0.88; utt2.pitch = 1.05;
-        var v2 = getChineseVoice(); if (v2) utt2.voice = v2;
-        window.speechSynthesis.speak(utt2);
-      } else {
-        var goOnMsg = level2 === 'L1'
-          ? '没有问题的话我们继续学习吧，有问题可以随时问我哦～'
-          : level2 === 'L2' ? '好，没有问题我们就接着往下走，有疑问随时说！'
-          : '好，我们继续。有问题随时可以打断我提问。';
-        addBubble('ai', goOnMsg);
-        document.getElementById('qaPanel').classList.remove('visible');
-        var utt3 = new SpeechSynthesisUtterance(goOnMsg);
-        utt3.lang = 'zh-CN'; utt3.rate = 0.88; utt3.pitch = 1.05;
-        var v3 = getChineseVoice(); if (v3) utt3.voice = v3;
-        utt3.onend = function() {
-          if (qaContext.midMode && qaContext.onResume) qaContext.onResume();
-        };
-        utt3.onerror = utt3.onend;
-        window.speechSynthesis.speak(utt3);
-      }
-    }
-  }, 500); // 每500ms检查一次
+    window.speechSynthesis.speak(utt);
+  }, 10000);
+}
+
+function _idleAutoAdvance() {
+  stopIdleChecker();
+  window.speechSynthesis.cancel();
+  stopMic();
+  var level = qaContext.level || 'L1';
+  if (idleFinal) {
+    var doneMsg = level === 'L1'
+      ? '好啦，没有疑问的话，这首诗的学习就到这里啦！以后有问题随时来找我哦～'
+      : level === 'L2' ? '好，没有疑问的话，这首诗的学习就结束啦！有问题随时来找我！'
+      : '好，没有疑问的话，这首诗我们就学完了！以后有任何想法欢迎继续交流哦！';
+    addBubble('ai', doneMsg);
+    document.getElementById('qaPanel').classList.remove('visible');
+    var utt2 = new SpeechSynthesisUtterance(doneMsg);
+    utt2.lang = 'zh-CN'; utt2.rate = 0.88; utt2.pitch = 1.05;
+    var v2 = getChineseVoice(); if (v2) utt2.voice = v2;
+    window.speechSynthesis.speak(utt2);
+  } else {
+    var goOnMsg = level === 'L1'
+      ? '没有问题的话我们继续学习吧，有问题可以随时问我哦～'
+      : level === 'L2' ? '好，没有问题我们就接着往下走，有疑问随时说！'
+      : '好，我们继续。有问题随时可以打断我提问。';
+    addBubble('ai', goOnMsg);
+    document.getElementById('qaPanel').classList.remove('visible');
+    var utt3 = new SpeechSynthesisUtterance(goOnMsg);
+    utt3.lang = 'zh-CN'; utt3.rate = 0.88; utt3.pitch = 1.05;
+    var v3 = getChineseVoice(); if (v3) utt3.voice = v3;
+    utt3.onend = function() {
+      if (qaContext.midMode && qaContext.onResume) qaContext.onResume();
+    };
+    utt3.onerror = utt3.onend;
+    window.speechSynthesis.speak(utt3);
+  }
 }
 
 // 兼容旧调用
