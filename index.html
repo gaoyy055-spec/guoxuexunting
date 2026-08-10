@@ -2606,6 +2606,7 @@ function showMidQAPanel(poemTitle, level, goal, nextSegments) {
   stopWakeListener();
   stopTTSKeepAlive();
   setTimeout(() => startMic(true), 600);
+  console.log('[QA] showMidQAPanel called, startIdleTimer(false)');
   startIdleTimer(false); // 中间互动：10秒提醒+10秒自动继续
 }
 
@@ -3114,6 +3115,7 @@ function showQAPanel(poemTitle, level, goal) {
   stopWakeListener();
   stopTTSKeepAlive();
   setTimeout(() => startMic(true), 600);
+  console.log('[QA] showQAPanel called, startIdleTimer(true)');
   startIdleTimer(true); // 最终互动：10秒提醒+10秒结束
 }
 
@@ -3549,12 +3551,13 @@ let idleAnswered = false;
 
 // 用户有任何真实输入时调用
 function markIdleAnswered() {
+  console.log('[idleTimer] markIdleAnswered called, stack:', new Error().stack);
   idleAnswered = true;
   stopIdleChecker();
 }
 
 function stopIdleChecker() {
-  if (idleChecker) { clearTimeout(idleChecker); idleChecker = null; }
+  if (idleChecker) { clearTimeout(idleChecker); idleChecker = null; console.log('[idleTimer] cleared idleChecker'); }
   if (idleTimer1) { clearTimeout(idleTimer1); idleTimer1 = null; console.log('[idleTimer] cleared timer1'); }
   if (idleTimer2) { clearTimeout(idleTimer2); idleTimer2 = null; console.log('[idleTimer] cleared timer2'); }
 }
