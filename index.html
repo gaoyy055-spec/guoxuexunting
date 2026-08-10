@@ -2017,6 +2017,20 @@ function getChineseVoice() {
 // voices 异步加载
 if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = () => { selectedVoice = null; getChineseVoice(); };
+  // Edge 有时不触发 onvoiceschanged，主动预加载一次
+  getChineseVoice();
+}
+
+// 等待语音列表加载完毕后再执行 callback（最多等 3 秒）
+function waitForVoices(callback) {
+  const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  if (voices.length > 0) { callback(); return; }
+  let tries = 0;
+  const t = setInterval(() => {
+    tries++;
+    const v = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    if (v.length > 0 || tries >= 15) { clearInterval(t); callback(); }
+  }, 200);
 }
 
 // ===== Chrome TTS 保活 =====
@@ -2485,7 +2499,7 @@ function triggerSpeaker(mode, title, poemText, age) {
     });
   }
 
-  // 链式播放（支持 interlude 节点——播完后暂停等待孩子回应，"没有问题"后继续）
+  // 链式播放（等语音列表加载后再开始，修复 Edge 无声问题）
   pausedSegments = segments;
   pausedSegIdx = 0;
   let segIdx = 0;
@@ -3451,11 +3465,6 @@ function startMic(auto) {
     return;
   }
   if (micActive) return;
-
-  if (auto) {
-    document.getElementById('qaMicStatus').textContent = '🎙 点击麦克风按钮说话';
-    return;
-  }
 
   micShouldRestart = true;
   _doStartMic();
