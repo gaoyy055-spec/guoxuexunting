@@ -3604,7 +3604,7 @@ function _idleAutoAdvance() {
   if (idleFinal) {
     document.getElementById('qaPanel').classList.remove('visible');
     if (qaContext.goal.startsWith('背诵积累')) {
-    } else {
+      startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
       var doneMsg = level === 'L1'
         ? '好啦，没有疑问的话，这首诗的学习就到这里啦！以后有问题随时来找我哦～'
         : level === 'L2' ? '好，没有疑问的话，这首诗的学习就结束啦！有问题随时来找我！'
