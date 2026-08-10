@@ -3126,8 +3126,22 @@ function sendQA() {
   processUserInput(q);
 }
 
+function isRealQuestion(q) {
+  // 认为是有效输入的条件：
+  // 1. 包含"没有问题"/"继续"等结束语（也算有效，走 noMoreQ 分支）
+  // 2. 长度 >= 3 个字（太短大概率是噪声/误识别）
+  // 3. 包含常见问询词
+  const noMore = /没有|没了|不了|没问题|不用了|不问了|好了|行了|够了|结束|可以了|就这些|继续/;
+  if (noMore.test(q)) return true;
+  if (q.length < 3) return false;
+  return true;
+}
+
 function processUserInput(q) {
-  clearIdleTimers(); // 用户真正发言，清除超时计时器
+  // 过滤无效输入（太短、噪声），不清 timer、不增加 turns
+  if (!isRealQuestion(q)) return;
+
+  clearIdleTimers(); // 确认是真实输入后再清计时器
   qaContext.turns = (qaContext.turns || 0) + 1;
   addBubble('user', q);
 
@@ -3530,11 +3544,10 @@ let idleTimerFinal = false; // 记录当前 isFinal 值
 function startIdleTimer(isFinal) {
   clearIdleTimers();
   idleTimerFinal = isFinal;
-  var turnsAtStart = qaContext.turns || 0; // 快照：启动时的 turns
 
   idleTimer1 = setTimeout(function() {
-    // 如果计时器启动后 turns 没有增加，说明用户一直没开口
-    if ((qaContext.turns || 0) > turnsAtStart) return;
+    // 面板不可见说明用户已主动操作，无需提醒
+    if (!document.getElementById('qaPanel').classList.contains('visible')) return;
 
     var level = qaContext.level || 'L1';
     var nudgeMsg = level === 'L1'
@@ -3555,7 +3568,7 @@ function startIdleTimer(isFinal) {
     window.speechSynthesis.speak(utt);
 
     idleTimer2 = setTimeout(function() {
-      if ((qaContext.turns || 0) > turnsAtStart) return;
+      if (!document.getElementById('qaPanel').classList.contains('visible')) return;
       stopMic();
       window.speechSynthesis.cancel();
 
