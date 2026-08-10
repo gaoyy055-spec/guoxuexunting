@@ -3575,9 +3575,9 @@ function startIdleTimer(isFinal) {
       idleStartTime = Date.now(); // 重置计时，再等10秒
       var level = qaContext.level || 'L1';
       var nudgeMsg = level === 'L1'
-        ? '小朋友，有什么想问的吗？不用紧张，想到什么就问什么～'
-        : level === 'L2' ? '小朋友，有没有好奇的地方？大胆说出来！'
-        : '同学，有什么想探讨的吗？随时可以提问～';
+        ? '小朋友，有什么想问的吗？不管什么问题，都可以说出来哦～'
+        : level === 'L2' ? '小朋友，有没有好奇的地方？有问题大胆提出来吧！'
+        : '同学，这里有没有什么疑问呀？随时可以问我哦～';
       addBubble('ai', nudgeMsg);
       window.speechSynthesis.cancel();
       var utt = new SpeechSynthesisUtterance(nudgeMsg);
@@ -3595,9 +3595,9 @@ function startIdleTimer(isFinal) {
       var level2 = qaContext.level || 'L1';
       if (idleFinal) {
         var doneMsg = level2 === 'L1'
-          ? '好啦，这首诗我们就学完啦！下次有问题随时来找我哦，拜拜～'
-          : level2 === 'L2' ? '好，这首诗我们就到这里！有问题下次还可以继续探索，我们下次见！'
-          : '好，今天的学习就到这里！有任何想法欢迎下次继续交流，再见！';
+          ? '好啦，没有疑问的话，这首诗的学习就到这里啦！以后有问题随时来找我哦～'
+          : level2 === 'L2' ? '好，没有疑问的话，这首诗的学习就结束啦！有问题随时来找我！'
+          : '好，没有疑问的话，这首诗我们就学完了！以后有任何想法欢迎继续交流哦！';
         addBubble('ai', doneMsg);
         document.getElementById('qaPanel').classList.remove('visible');
         var utt2 = new SpeechSynthesisUtterance(doneMsg);
@@ -3606,9 +3606,9 @@ function startIdleTimer(isFinal) {
         window.speechSynthesis.speak(utt2);
       } else {
         var goOnMsg = level2 === 'L1'
-          ? '没有问题的话我们继续学习吧，有问题随时叫我哦～'
-          : level2 === 'L2' ? '好，我们接着往下走，有问题随时打断！'
-          : '好，我们继续。有问题随时可以提问。';
+          ? '没有问题的话我们继续学习吧，有问题可以随时问我哦～'
+          : level2 === 'L2' ? '好，没有问题我们就接着往下走，有疑问随时说！'
+          : '好，我们继续。有问题随时可以打断我提问。';
         addBubble('ai', goOnMsg);
         document.getElementById('qaPanel').classList.remove('visible');
         var utt3 = new SpeechSynthesisUtterance(goOnMsg);
