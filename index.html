@@ -3471,7 +3471,13 @@ function startIdleTimer(isFinal) {
       ? '小朋友，有没有好奇的地方？大胆说出来！'
       : '同学，有什么想探讨的吗？随时可以提问～';
     addBubble('ai', nudgeMsg);
-    speakText(nudgeMsg, 0.88, null);
+    // 停掉麦克风再 speak，避免 continuous 模式下 cancel() 冲突
+    stopMic();
+    const utt = new SpeechSynthesisUtterance(nudgeMsg);
+    utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
+    const v = getChineseVoice(); if (v) utt.voice = v;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utt);
 
     // 第二次：再等10秒，自动继续
     idleTimer2 = setTimeout(() => {
@@ -3486,7 +3492,11 @@ function startIdleTimer(isFinal) {
           ? '好，这首诗我们就到这里！有问题下次还可以继续探索，我们下次见！'
           : '好，今天的学习就到这里！有任何想法欢迎下次继续交流，再见！';
         addBubble('ai', doneMsg);
-        speakText(doneMsg, 0.88, null);
+        const utt2 = new SpeechSynthesisUtterance(doneMsg);
+        utt2.lang = 'zh-CN'; utt2.rate = 0.88; utt2.pitch = 1.05;
+        const v2 = getChineseVoice(); if (v2) utt2.voice = v2;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utt2);
         document.getElementById('qaPanel').classList.remove('visible');
       } else {
         // 中间互动：继续后续讲解
@@ -3497,11 +3507,17 @@ function startIdleTimer(isFinal) {
           ? '好，我们接着往下走，有问题随时打断！'
           : '好，我们继续。有问题随时可以提问。';
         addBubble('ai', goOnMsg);
-        speakText(goOnMsg, 0.88, () => {
+        const utt3 = new SpeechSynthesisUtterance(goOnMsg);
+        utt3.lang = 'zh-CN'; utt3.rate = 0.88; utt3.pitch = 1.05;
+        const v3 = getChineseVoice(); if (v3) utt3.voice = v3;
+        utt3.onend = () => {
           if (qaContext.midMode && qaContext.onResume) {
             qaContext.onResume();
           }
-        });
+        };
+        utt3.onerror = utt3.onend;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utt3);
       }
     }, 10000);
   }, 10000);
