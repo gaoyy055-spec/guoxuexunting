@@ -3586,13 +3586,16 @@ function startIdleTimer(isFinal) {
     var v = getChineseVoice(); if (v) utt.voice = v;
     window.speechSynthesis.speak(utt);
 
-    // 第二阶段：固定再等10秒，不依赖TTS onend
-    idleTimer2 = setTimeout(function() {
-      idleTimer2 = null;
-      console.log('[idleTimer] phase2 fired, idleAnswered=', idleAnswered, new Date().toISOString());
+    // 第二阶段：提醒语音播完后再等10秒
+    utt.onend = utt.onerror = function() {
       if (idleAnswered) return;
-      _idleAutoAdvance();
-    }, 10000);
+      idleTimer2 = setTimeout(function() {
+        idleTimer2 = null;
+        console.log('[idleTimer] phase2 fired, idleAnswered=', idleAnswered, new Date().toISOString());
+        if (idleAnswered) return;
+        _idleAutoAdvance();
+      }, 10000);
+    };
   }, 10000);
 }
 
