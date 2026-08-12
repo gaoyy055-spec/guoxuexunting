@@ -1,18 +1,22 @@
-export const config = { runtime: 'edge' };
+const https = require('https');
+const http = require('http');
 
-export default async function handler(req) {
-  const url = new URL(req.url);
-  const target = new URL('http://152.136.62.34:80/tts/audio' + url.search);
+module.exports = async function handler(req, res) {
+  const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  const targetUrl = `http://152.136.62.34:80/tts/audio${qs}`;
 
-  const res = await fetch(target.toString(), {
-    method: req.method,
-    headers: { 'Content-Type': req.headers.get('Content-Type') || 'application/json' },
-    body: req.method !== 'GET' ? req.body : undefined,
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  return new Promise((resolve, reject) => {
+    const proxy = http.get(targetUrl, (upstream) => {
+      res.status(upstream.statusCode);
+      res.setHeader('Content-Type', upstream.headers['content-type'] || 'audio/mpeg');
+      upstream.pipe(res);
+      upstream.on('end', resolve);
+    });
+    proxy.on('error', (err) => {
+      res.status(502).send('TTS proxy error: ' + err.message);
+      resolve();
+    });
   });
-
-  const headers = new Headers();
-  headers.set('Content-Type', res.headers.get('Content-Type') || 'audio/mpeg');
-  headers.set('Access-Control-Allow-Origin', '*');
-
-  return new Response(res.body, { status: res.status, headers });
-}
+};
