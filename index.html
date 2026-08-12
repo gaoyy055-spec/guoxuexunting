@@ -1986,6 +1986,54 @@ let pendingTask = null;    // {title, text} set when push is made
 let autoPlayOn = true;
 let timerTime = null;      // '08:00' string or null
 
+// ===== Cloud TTS (豆包) =====
+const CLOUD_TTS_CONFIG = {
+  baseUrl: 'http://152.136.62.34:80/tts/audio',
+  voiceDefault: 'sweet_female',
+  voicePoet: 'adult_male',
+};
+
+// 正在播放的 Audio 对象（用于停止）
+let minimaxAudio = null;
+
+function minimaxSpeak(text, voiceId, speed, onDone) {
+  const per = voiceId || CLOUD_TTS_CONFIG.voiceDefault;
+  const doubaoSpeed = speed ? Math.round((speed - 1.0) * 50) : 0;
+  const params = new URLSearchParams({
+    text,
+    per,
+    format: 'mp3',
+    stream: 'false',
+    speed: doubaoSpeed,
+  });
+  const url = `${CLOUD_TTS_CONFIG.baseUrl}?${params.toString()}`;
+  if (window._ttsLog) _ttsLog('请求: per=' + per + ' text=' + text.slice(0,15) + ' url=' + url.slice(0,80));
+
+  if (minimaxAudio) { minimaxAudio.pause(); minimaxAudio = null; }
+  const audio = new Audio(url);
+  minimaxAudio = audio;
+  audio.oncanplay = () => { if (window._ttsLog) _ttsLog('OK 音频加载成功'); };
+  audio.onended = () => {
+    if (window._ttsLog) _ttsLog('播放结束');
+    minimaxAudio = null; if (onDone) onDone();
+  };
+  audio.onerror = (e) => {
+    if (window._ttsLog) _ttsLog('ERROR code=' + (audio.error && audio.error.code) + ' 降级WebSpeech');
+    minimaxAudio = null;
+    if (onDone) onDone('fallback');
+  };
+  audio.play().catch(err => {
+    if (window._ttsLog) _ttsLog('ERROR play()=' + err.message + ' 降级WebSpeech');
+    minimaxAudio = null;
+    if (onDone) onDone('fallback');
+  });
+  return true;
+}
+
+function stopMinimaxAudio() {
+  if (minimaxAudio) { minimaxAudio.pause(); minimaxAudio = null; }
+}
+
 // ===== 音色选择 =====
 // 优先顺序：微软小晓(Natural) > 微软晓伊 > 微软小燕(Edge本地) > Google普通话 > 任意zh-CN
 const PREFERRED_VOICES = [
@@ -2309,8 +2357,8 @@ function triggerSpeaker(mode, title, poemText, age) {
   isSpeaking = true;
   startTTSKeepAlive(); // 启动保活，防止 Chrome 静默卡死
   startWakeListener(); // 启动语音唤醒监听（停/暂停/小度小度 打断）
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
+  stopMinimaxAudio();
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
   const poemTitle = title.split(' — ')[0];
   const level = getLevel(age);
@@ -2519,21 +2567,27 @@ function triggerSpeaker(mode, title, poemText, age) {
     }
     pausedSegIdx = segIdx; // 每段开始前记录位置
     const seg = segments[segIdx++];
-    const utt = new SpeechSynthesisUtterance(seg.text);
-    utt.lang = 'zh-CN';
-    utt.rate = seg.rate;
-    utt.pitch = seg.pitch;
-    const v = getChineseVoice();
-    if (v) utt.voice = v;
-    utt.onend = () => {
-      if (seg.onEnd) {
-        seg.onEnd(); // interlude: onEnd 负责继续播放，不调 playNext
-      } else {
-        playNext();
-      }
-    };
-    utt.onerror = playNext;
-    window.speechSynthesis.speak(utt);
+    const segRate = seg.rate || 0.88;
+    const launched = minimaxSpeak(seg.text, CLOUD_TTS_CONFIG.voiceDefault, segRate, () => {
+      if (seg.onEnd) { seg.onEnd(); } else { playNext(); }
+    });
+    if (!launched) {
+      const utt = new SpeechSynthesisUtterance(seg.text);
+      utt.lang = 'zh-CN';
+      utt.rate = segRate;
+      utt.pitch = seg.pitch;
+      const v = getChineseVoice();
+      if (v) utt.voice = v;
+      utt.onend = () => {
+        if (seg.onEnd) {
+          seg.onEnd();
+        } else {
+          playNext();
+        }
+      };
+      utt.onerror = playNext;
+      window.speechSynthesis.speak(utt);
+    }
   }
   playNext();
 }
@@ -2573,15 +2627,21 @@ function showMidQAPanel(poemTitle, level, goal, nextSegments) {
         }
         pausedSegIdx = idx;
         const seg = nextSegments[idx++];
-        const utt2 = new SpeechSynthesisUtterance(seg.text);
-        utt2.lang = 'zh-CN';
-        utt2.rate = seg.rate;
-        utt2.pitch = seg.pitch;
-        const v2 = getChineseVoice();
-        if (v2) utt2.voice = v2;
-        utt2.onend = () => { if (seg.onEnd) { seg.onEnd(); } else { playSegs(); } };
-        utt2.onerror = playSegs;
-        window.speechSynthesis.speak(utt2);
+        const segRate2 = seg.rate || 0.88;
+        const launched2 = minimaxSpeak(seg.text, CLOUD_TTS_CONFIG.voiceDefault, segRate2, () => {
+          if (seg.onEnd) { seg.onEnd(); } else { playSegs(); }
+        });
+        if (!launched2) {
+          const utt2 = new SpeechSynthesisUtterance(seg.text);
+          utt2.lang = 'zh-CN';
+          utt2.rate = segRate2;
+          utt2.pitch = seg.pitch;
+          const v2 = getChineseVoice();
+          if (v2) utt2.voice = v2;
+          utt2.onend = () => { if (seg.onEnd) { seg.onEnd(); } else { playSegs(); } };
+          utt2.onerror = playSegs;
+          window.speechSynthesis.speak(utt2);
+        }
       }
       playSegs();
     }
@@ -2616,6 +2676,7 @@ function stopSpeaker() {
   pausedSegments = null;
   stopTTSKeepAlive();
   stopWakeListener();
+  stopMinimaxAudio();
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   document.getElementById('speakerWrapper').classList.remove('speaker-playing');
   document.getElementById('screenBg').classList.remove('active');
@@ -2654,6 +2715,7 @@ function _doInterruptAndAsk() {
 
   // 暂停播放
   if (isSpeaking) {
+    stopMinimaxAudio();
     window.speechSynthesis.cancel();
     isSpeaking = false;
     stopWakeListener();
@@ -2767,6 +2829,7 @@ function togglePlayPause() {
   const btn = document.getElementById('stopBtn');
   if (isSpeaking) {
     // 暂停：取消TTS，记录当前进度
+    stopMinimaxAudio();
     window.speechSynthesis.cancel();
     isSpeaking = false;
     stopWakeListener();
@@ -2787,13 +2850,16 @@ function togglePlayPause() {
     const resumeSeg = pausedSegments[pausedSegIdx];
     const bridgeText = getResumeBridgeText(resumeSeg ? resumeSeg.label : '');
     if (bridgeText) {
-      const bridgeUtt = new SpeechSynthesisUtterance(bridgeText);
-      bridgeUtt.lang = 'zh-CN'; bridgeUtt.rate = 0.88; bridgeUtt.pitch = 1.05;
-      const bv = getChineseVoice(); if (bv) bridgeUtt.voice = bv;
-      bridgeUtt.onend = () => resumeFromSegment(pausedSegments, pausedSegIdx);
-      bridgeUtt.onerror = () => resumeFromSegment(pausedSegments, pausedSegIdx);
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(bridgeUtt);
+      const launched = minimaxSpeak(bridgeText, CLOUD_TTS_CONFIG.voiceDefault, 0.88, () => resumeFromSegment(pausedSegments, pausedSegIdx));
+      if (!launched) {
+        const bridgeUtt = new SpeechSynthesisUtterance(bridgeText);
+        bridgeUtt.lang = 'zh-CN'; bridgeUtt.rate = 0.88; bridgeUtt.pitch = 1.05;
+        const bv = getChineseVoice(); if (bv) bridgeUtt.voice = bv;
+        bridgeUtt.onend = () => resumeFromSegment(pausedSegments, pausedSegIdx);
+        bridgeUtt.onerror = () => resumeFromSegment(pausedSegments, pausedSegIdx);
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(bridgeUtt);
+      }
     } else {
       resumeFromSegment(pausedSegments, pausedSegIdx);
     }
@@ -2837,15 +2903,21 @@ function resumeFromSegment(segments, startIdx) {
     }
     pausedSegIdx = segIdx; // 记录当前位置，供暂停用
     const seg = segments[segIdx++];
-    const utt = new SpeechSynthesisUtterance(seg.text);
-    utt.lang = 'zh-CN';
-    utt.rate = seg.rate;
-    utt.pitch = seg.pitch;
-    const v = getChineseVoice();
-    if (v) utt.voice = v;
-    utt.onend = () => { if (seg.onEnd) seg.onEnd(); playNext(); };
-    utt.onerror = playNext;
-    window.speechSynthesis.speak(utt);
+    const segRate3 = seg.rate || 0.88;
+    const launched3 = minimaxSpeak(seg.text, CLOUD_TTS_CONFIG.voiceDefault, segRate3, () => {
+      if (seg.onEnd) seg.onEnd(); playNext();
+    });
+    if (!launched3) {
+      const utt = new SpeechSynthesisUtterance(seg.text);
+      utt.lang = 'zh-CN';
+      utt.rate = segRate3;
+      utt.pitch = seg.pitch;
+      const v = getChineseVoice();
+      if (v) utt.voice = v;
+      utt.onend = () => { if (seg.onEnd) seg.onEnd(); playNext(); };
+      utt.onerror = playNext;
+      window.speechSynthesis.speak(utt);
+    }
   }
   playNext();
 }
@@ -2955,7 +3027,7 @@ function getPoetVoice(style) {
 }
 
 // 播报诗人语气文本
-function speakAsPoet(text, author, onDone) {
+function _speakAsPoetWebSpeech(text, author, onDone) {
   if (!('speechSynthesis' in window)) { if (onDone) onDone(); return; }
   const persona = POET_PERSONA[author];
   const style = persona ? persona.style : 'sincere';
@@ -2970,6 +3042,19 @@ function speakAsPoet(text, author, onDone) {
   if (onDone) { utt.onend = onDone; utt.onerror = onDone; }
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utt);
+}
+
+function speakAsPoet(text, author, onDone) {
+  const persona = POET_PERSONA[author];
+  const style = persona ? persona.style : 'sincere';
+  const params = POET_VOICE_PARAMS[style] || { rate: 0.80, pitch: 0.92 };
+  // rate: 0.80 → MiniMax speed ≈ 0.85
+  const mmSpeed = Math.round((params.rate / 0.85) * 0.9 * 100) / 100;
+  const launched = minimaxSpeak(text, CLOUD_TTS_CONFIG.voicePoet, mmSpeed, (result) => {
+    if (result === 'fallback') _speakAsPoetWebSpeech(text, author, onDone);
+    else if (onDone) onDone();
+  });
+  if (!launched) _speakAsPoetWebSpeech(text, author, onDone);
 }
 
 // 判断是否是触发"跟诗人聊"的输入
@@ -3072,7 +3157,7 @@ function getQAAnswer(poemTitle, question) {
   return lv.intro + ' ' + lv.life;
 }
 
-function speakText(text, rate, onDone) {
+function _speakTextWebSpeech(text, rate, onDone) {
   if (!('speechSynthesis' in window)) { if (onDone) onDone(); return; }
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = 'zh-CN';
@@ -3083,6 +3168,16 @@ function speakText(text, rate, onDone) {
   if (onDone) { utt.onend = onDone; utt.onerror = onDone; }
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utt);
+}
+
+function speakText(text, rate, onDone) {
+  // rate: 0.85 → MiniMax speed ≈ 0.9（映射关系：rate/0.85*0.9）
+  const mmSpeed = rate ? Math.round((rate / 0.85) * 0.9 * 100) / 100 : 0.9;
+  const launched = minimaxSpeak(text, CLOUD_TTS_CONFIG.voiceDefault, mmSpeed, (result) => {
+    if (result === 'fallback') _speakTextWebSpeech(text, rate, onDone);
+    else if (onDone) onDone();
+  });
+  if (!launched) _speakTextWebSpeech(text, rate, onDone);
 }
 
 function showQAPanel(poemTitle, level, goal) {
@@ -3578,13 +3673,7 @@ function startIdleTimer(isFinal) {
       : level === 'L2' ? '小朋友，有没有好奇的地方？有问题大胆提出来吧！'
       : '同学，这里有没有什么疑问呀？随时可以问我哦～';
     addBubble('ai', nudgeMsg);
-    var utt = new SpeechSynthesisUtterance(nudgeMsg);
-    utt.lang = 'zh-CN'; utt.rate = 0.88; utt.pitch = 1.05;
-    var v = getChineseVoice(); if (v) utt.voice = v;
-    window.speechSynthesis.speak(utt);
-
-    // 第二阶段：提醒语音播完后再等10秒
-    utt.onend = utt.onerror = function() {
+    minimaxSpeak(nudgeMsg, CLOUD_TTS_CONFIG.voiceDefault, 0.88, function() {
       if (idleAnswered) return;
       idleTimer2 = setTimeout(function() {
         idleTimer2 = null;
@@ -3592,12 +3681,13 @@ function startIdleTimer(isFinal) {
         if (idleAnswered) return;
         _idleAutoAdvance();
       }, 10000);
-    };
+    });
   }, 10000);
 }
 
 function _idleAutoAdvance() {
   stopIdleChecker();
+  stopMinimaxAudio();
   window.speechSynthesis.cancel();
   stopMic();
   var level = qaContext.level || 'L1';
@@ -3610,10 +3700,7 @@ function _idleAutoAdvance() {
         : level === 'L2' ? '好，没有疑问的话，这首诗的学习就结束啦！有问题随时来找我！'
         : '好，没有疑问的话，这首诗我们就学完了！以后有任何想法欢迎继续交流哦！';
       addBubble('ai', doneMsg);
-      var utt2 = new SpeechSynthesisUtterance(doneMsg);
-      utt2.lang = 'zh-CN'; utt2.rate = 0.88; utt2.pitch = 1.05;
-      var v2 = getChineseVoice(); if (v2) utt2.voice = v2;
-      window.speechSynthesis.speak(utt2);
+      minimaxSpeak(doneMsg, CLOUD_TTS_CONFIG.voiceDefault, 0.88, null);
     }
   } else {
     var goOnMsg = level === 'L1'
@@ -3622,14 +3709,9 @@ function _idleAutoAdvance() {
       : '好，我们继续。有问题随时可以打断我提问。';
     addBubble('ai', goOnMsg);
     document.getElementById('qaPanel').classList.remove('visible');
-    var utt3 = new SpeechSynthesisUtterance(goOnMsg);
-    utt3.lang = 'zh-CN'; utt3.rate = 0.88; utt3.pitch = 1.05;
-    var v3 = getChineseVoice(); if (v3) utt3.voice = v3;
-    utt3.onend = function() {
+    minimaxSpeak(goOnMsg, CLOUD_TTS_CONFIG.voiceDefault, 0.88, function() {
       if (qaContext.midMode && qaContext.onResume) qaContext.onResume();
-    };
-    utt3.onerror = utt3.onend;
-    window.speechSynthesis.speak(utt3);
+    });
   }
 }
 
@@ -3795,6 +3877,21 @@ document.getElementById('screen-home').addEventListener('click', function(e) {
   else if (labelText === '学期') activeSemester = val;
   renderAlbumGrid();
 });
+
+// ===== TTS 调试面板 =====
+(function() {
+  const panel = document.createElement('div');
+  panel.id = 'tts-debug';
+  panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:160px;overflow-y:auto;background:rgba(0,0,0,0.85);color:#0f0;font:12px monospace;padding:6px 10px;z-index:9999;';
+  panel.innerHTML = '<b style="color:#ff0">[TTS Debug — 刷新后生效]</b><br>';
+  document.body.appendChild(panel);
+  window._ttsLog = function(msg) {
+    const line = document.createElement('div');
+    line.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+    panel.appendChild(line);
+    panel.scrollTop = panel.scrollHeight;
+  };
+})();
 </script>
 </body>
 </html>
