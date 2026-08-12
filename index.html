@@ -2369,7 +2369,7 @@ function triggerSpeaker(mode, title, poemText, age) {
   const segments = [];
 
   // 根据年龄段定称呼
-  const kidCall = level === 'L1' ? '小朋友' : level === 'L2' ? '小朋友' : '同学';
+  const kidCall = level === 'L1' ? '小朋友' : level === 'L2' ? '小朋友' : '小朋友';
   const isXunTing = mode.startsWith('熏听模式');
 
   // 中间互动引导：只在非熏听模式插入；熏听模式跳过互动直接继续
@@ -2870,7 +2870,7 @@ function togglePlayPause() {
 function getResumeBridgeText(label) {
   const title = currentScript ? currentScript.title.split(' — ')[0] : '这首诗';
   const level = currentScript ? getLevel(currentScript.age) : 'L1';
-  const call = level === 'L1' ? '小朋友' : level === 'L2' ? '小朋友' : '同学';
+  const call = level === 'L1' ? '小朋友' : level === 'L2' ? '小朋友' : '小朋友';
   const bridges = {
     open:        '',
     poem:        `好，${call}，刚才我们刚开始，接下来听小度朗读古诗原文吧～`,
@@ -3385,8 +3385,8 @@ function startReciteSession(poemTitle, level, goal) {
     level,
     goal,
     lines,
-    stage: 0,      // 当前阶段 0-5
-    lineIdx: 0,    // 当前练习到第几句
+    stage: -1,     // -1:逐句带读, 0:整体朗读, 1-4:背诵阶段
+    lineIdx: 0,
     mistakes: 0
   };
 
@@ -3394,10 +3394,10 @@ function startReciteSession(poemTitle, level, goal) {
   document.getElementById('qaPanel').classList.add('visible');
 
   const intro = level === 'L1'
-    ? '讲解完啦！接下来我们来试试一起读这首诗，别着急，跟着我一句一句来～'
+    ? '讲解完啦！接下来我们先一句一句跟着读，熟悉一下这首诗，准备好了吗？我们开始吧！'
     : goal.startsWith('背诵积累')
-    ? '讲解完啦！接下来我们来试试背一背这首诗，别担心，我们一步一步慢慢来～'
-    : '好啦，接下来我们来轻松地背一背这首诗，你不用担心，我会一直在旁边帮你！';
+    ? '讲解完啦！我们先来逐句跟读一遍，熟悉节奏，再试着背一背，跟我来～'
+    : '好啦，我们先逐句跟读一遍熟悉一下，然后再试着背，你不用担心，我会一直在！';
 
   addBubble('ai', intro);
   speakText(intro, 0.88, () => setTimeout(runReciteStage, 500));
@@ -3407,9 +3407,32 @@ function runReciteStage() {
   if (!reciteState) return;
   const { lines, stage, lineIdx, level, goal } = reciteState;
 
-  // 阶段0：先完整朗读一遍（听熟）
+  // 阶段-1：逐句带读（用户跟读每一句）
+  if (stage === -1) {
+    if (lineIdx >= lines.length) {
+      // 逐句带读完毕，进入整体朗读阶段
+      const transMsg = '很好！我们再完整地听一遍，你可以跟着小声读～';
+      addBubble('ai', transMsg);
+      speakText(transMsg, 0.88, () => {
+        reciteState.stage = 0;
+        reciteState.lineIdx = 0;
+        setTimeout(runReciteStage, 500);
+      });
+      return;
+    }
+    const line = lines[lineIdx];
+    const msg = `跟我读第${lineIdx + 1}句：${line}`;
+    addBubble('ai', msg);
+    speakText(line.replace(/[，。？！]/g, ''), 0.75, () => {
+      reciteState.lineIdx++;
+      setTimeout(runReciteStage, 1200);
+    });
+    return;
+  }
+
+  // 阶段0：完整朗读一遍（听熟）
   if (stage === 0) {
-    const msg = '没关系，我们先来听一遍，你可以跟着小声读～\n' + lines.join('\n');
+    const msg = '现在我们完整地听一遍，注意节奏和语气～\n' + lines.join('\n');
     addBubble('ai', msg);
     speakText(lines.join('，'), 0.7, () => {
       reciteState.stage = 1;
@@ -3671,7 +3694,7 @@ function startIdleTimer(isFinal) {
     var nudgeMsg = level === 'L1'
       ? '小朋友，有什么想问的吗？不管什么问题，都可以说出来哦～'
       : level === 'L2' ? '小朋友，有没有好奇的地方？有问题大胆提出来吧！'
-      : '同学，这里有没有什么疑问呀？随时可以问我哦～';
+      : '小朋友，这里有没有什么疑问呀？随时可以问我哦～';
     addBubble('ai', nudgeMsg);
     minimaxSpeak(nudgeMsg, CLOUD_TTS_CONFIG.voiceDefault, 0.88, function() {
       if (idleAnswered) return;
