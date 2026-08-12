@@ -3325,7 +3325,13 @@ function processUserInput(q) {
         });
       } else {
         // 背诵积累达到3轮上限，引导背诵
-        startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
+        const transMsg = level === 'L1'
+          ? '问了这么多好问题！接下来我们一起来读读这首诗吧！'
+          : '问了好多好问题！接下来先逐句跟读，再试着背一背！';
+        addBubble('ai', transMsg);
+        speakText(transMsg, 0.88, () => {
+          startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
+        });
       }
     });
   }
@@ -3392,15 +3398,7 @@ function startReciteSession(poemTitle, level, goal) {
 
   stopMic();
   document.getElementById('qaPanel').classList.add('visible');
-
-  const intro = level === 'L1'
-    ? '讲解完啦！接下来我们先一句一句跟着读，熟悉一下这首诗，准备好了吗？我们开始吧！'
-    : goal.startsWith('背诵积累')
-    ? '讲解完啦！我们先来逐句跟读一遍，熟悉节奏，再试着背一背，跟我来～'
-    : '好啦，我们先逐句跟读一遍熟悉一下，然后再试着背，你不用担心，我会一直在！';
-
-  addBubble('ai', intro);
-  speakText(intro, 0.88, () => setTimeout(runReciteStage, 500));
+  setTimeout(runReciteStage, 300);
 }
 
 function runReciteStage() {
@@ -3409,6 +3407,15 @@ function runReciteStage() {
 
   // 阶段-1：逐句带读（用户跟读每一句）
   if (stage === -1) {
+    if (!reciteState._introPlayed) {
+      reciteState._introPlayed = true;
+      const intro = level === 'L1'
+        ? '我们先来逐句跟读，跟着我读，准备好了吗？'
+        : '先跟我逐句读一遍，熟悉节奏，跟我来～';
+      addBubble('ai', intro);
+      speakText(intro, 0.88, () => setTimeout(runReciteStage, 400));
+      return;
+    }
     if (lineIdx >= lines.length) {
       // 逐句带读完毕，进入整体朗读阶段
       const transMsg = '很好！我们再完整地听一遍，你可以跟着小声读～';
@@ -3717,13 +3724,13 @@ function _idleAutoAdvance() {
   if (idleFinal) {
     document.getElementById('qaPanel').classList.remove('visible');
     if (qaContext.goal.startsWith('背诵积累')) {
-      startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
       var doneMsg = level === 'L1'
-        ? '好啦，没有疑问的话，这首诗的学习就到这里啦！以后有问题随时来找我哦～'
-        : level === 'L2' ? '好，没有疑问的话，这首诗的学习就结束啦！有问题随时来找我！'
-        : '好，没有疑问的话，这首诗我们就学完了！以后有任何想法欢迎继续交流哦！';
+        ? '好啦，没有疑问的话，我们来一起读一读这首诗吧！'
+        : '好，没有疑问的话，我们先来逐句跟读，然后再试着背一背！';
       addBubble('ai', doneMsg);
-      minimaxSpeak(doneMsg, CLOUD_TTS_CONFIG.voiceDefault, 0.88, null);
+      minimaxSpeak(doneMsg, CLOUD_TTS_CONFIG.voiceDefault, 0.88, function() {
+        startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
+      });
     }
   } else {
     var goOnMsg = level === 'L1'
