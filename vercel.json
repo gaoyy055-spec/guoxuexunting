@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/tts/:path*",
-      "destination": "http://152.136.62.34:80/:path*"
+      "destination": "/api/tts"
     }
   ]
 }
