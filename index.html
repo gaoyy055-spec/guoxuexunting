@@ -3301,8 +3301,13 @@ function processUserInput(q) {
       }
       // 最终互动：结束或进入背诵
       if (qaContext.goal.startsWith('背诵积累')) {
-        addBubble('ai', closeMsg);
-        speakText(closeMsg, 0.88);
+        const toReciteMsg = qaContext.level === 'L1'
+          ? '好！那我们来一起读读这首诗，然后试着背一背吧！'
+          : '好！那我们先逐句跟读，再试着背一背吧！';
+        addBubble('ai', toReciteMsg);
+        speakText(toReciteMsg, 0.88, () => {
+          startReciteSession(qaContext.poemTitle, qaContext.level, qaContext.goal);
+        });
       }
       return;
     }
