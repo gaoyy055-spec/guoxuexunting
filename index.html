@@ -3447,9 +3447,15 @@ function runReciteStage() {
     const msg = '现在我们完整地听一遍，注意节奏和语气～\n' + lines.join('\n');
     addBubble('ai', msg);
     speakText(lines.join('，'), 0.7, () => {
-      reciteState.stage = 1;
-      reciteState.lineIdx = 0;
-      setTimeout(runReciteStage, 800);
+      const bridgeMsg = level === 'L1'
+        ? '读得很棒！现在我们来试着把它背出来，不用怕，我会一步一步带着你！'
+        : '读得很好！节奏和语感都有了，现在我们来挑战一下——试着把这首诗背出来吧！';
+      addBubble('ai', bridgeMsg);
+      speakText(bridgeMsg, 0.88, () => {
+        reciteState.stage = 1;
+        reciteState.lineIdx = 0;
+        setTimeout(runReciteStage, 500);
+      });
     });
     return;
   }
